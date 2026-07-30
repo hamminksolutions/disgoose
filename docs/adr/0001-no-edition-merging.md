@@ -1,0 +1,3 @@
+# No merging of album editions
+
+MusicBrainz usually treats different editions of an album (e.g. standard version and deluxe/reissue) as separate release-groups. Disgoose uses release-group as the unit of "Album" (see [CONTEXT.md](../../CONTEXT.md)) and, in v1, builds no logic to recognize or merge these editions. Consequence: a user who accidentally rates two editions of the same album ends up with two separate ratings/grid cells. Knowingly accepted risk — edition matching is complex and even established platforms don't fully solve it. The only compensation: search results are sorted so the most common edition appears first.
