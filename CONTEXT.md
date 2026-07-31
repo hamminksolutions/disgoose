@@ -20,4 +20,4 @@ A mutual relationship between two Users, formed when one sends a Friend Request 
 _Avoid_: Follow, Following (asymmetric relationships — not used here, Friendship is always mutual)
 
 **Friend Request**:
-A pending, one-directional invitation from one User to another to form a Friendship. Declining a Friend Request or ending an existing Friendship is silent — the other party receives no notification of either.
+A pending, one-directional invitation from one User to another to form a Friendship. Declining a Friend Request or ending an existing Friendship is silent — the other party receives no notification of either. A User cannot send one to themselves. Sending one to a User who already has a pending Friend Request open toward you immediately resolves both into an accepted Friendship, rather than leaving two independent pending rows.

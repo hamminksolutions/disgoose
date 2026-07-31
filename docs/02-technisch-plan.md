@@ -76,12 +76,15 @@ ratings
 
 friendships
   id             uuid primary key
-  requester_id   uuid references users(id)
-  addressee_id   uuid references users(id)
+  requester_id   uuid references users(id) on delete cascade
+  addressee_id   uuid references users(id) on delete cascade
   status         text            -- enum: pending | accepted
   created_at     timestamptz
+  check (requester_id != addressee_id)  -- no self-requests
   unique (requester_id, addressee_id)  -- a request is either pending or accepted; declining/unfriending deletes the row (silent, no notification — see CONTEXT.md and ADR-0005)
 ```
+
+`POST /api/friend-requests` (section 5) must check for an existing reverse-direction pending row (`addressee_id = <me>, requester_id = <them>`) before inserting: if one exists, update it to `accepted` instead of inserting a new row — two independently-sent requests between the same pair resolve straight to a Friendship rather than sitting as two unrelated pending rows.
 
 ## 5. API layer (own backend endpoints)
 
