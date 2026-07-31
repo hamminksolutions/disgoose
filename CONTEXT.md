@@ -5,8 +5,8 @@ Music rating platform: users rate albums (1.0–10.0), optionally with a review,
 ## Language
 
 **Album**:
-A MusicBrainz release-group. Each release-group is its own, independently ratable album — there is no merge logic for different editions (e.g. standard vs. deluxe) of what a human would consider "the same album". See [ADR-0001](docs/adr/0001-no-edition-merging.md).
-_Avoid_: Release, pressing (that's a release, one level deeper than release-group — not what we mean by "album")
+A MusicBrainz release-group whose primary-type is `Album` or `EP`. Each release-group is its own, independently ratable album — there is no merge logic for different editions (e.g. standard vs. deluxe) of what a human would consider "the same album". See [ADR-0001](docs/adr/0001-no-edition-merging.md). Release-groups of other primary-types (Single, Broadcast, Other) — and any with a missing/unrecognized primary-type — are not ratable and never surface in search.
+_Avoid_: Release, pressing (that's a release, one level deeper than release-group — not what we mean by "album"); Single (a distinct, excluded release-group type, not a kind of Album)
 
 **Rating**:
 One user's evaluation of one album: score (1.0–10.0), listen method, optional review text. One Rating per (user, album) pair — re-rating overwrites the existing Rating, it is not a new entry.
