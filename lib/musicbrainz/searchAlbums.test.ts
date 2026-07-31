@@ -143,4 +143,33 @@ describe("searchAlbums", () => {
     expect(first[0].mbReleaseGroupId).toBe(releaseGroupId);
     expect(second[0].mbReleaseGroupId).toBe(releaseGroupId);
   });
+
+  it("resolves every result's cover independently and keeps them in order", async () => {
+    const supabase = createTestSupabaseClient();
+    const idA = randomUUID();
+    const idB = randomUUID();
+    const idC = randomUUID();
+    const coverArt = {
+      getCoverUrl: vi.fn(async (id: string) => `https://coverartarchive.example/${id}.jpg`),
+    };
+
+    const albums = await searchAlbums("radiohead", {
+      musicbrainz: {
+        searchReleaseGroups: vi.fn().mockResolvedValue([
+          { id: idA, title: "Album A", artist: "Radiohead" },
+          { id: idB, title: "Album B", artist: "Radiohead" },
+          { id: idC, title: "Album C", artist: "Radiohead" },
+        ]),
+      },
+      coverArt,
+      supabase,
+    });
+
+    expect(albums.map((a) => a.mbReleaseGroupId)).toEqual([idA, idB, idC]);
+    expect(albums.map((a) => a.coverUrl)).toEqual([
+      `https://coverartarchive.example/${idA}.jpg`,
+      `https://coverartarchive.example/${idB}.jpg`,
+      `https://coverartarchive.example/${idC}.jpg`,
+    ]);
+  });
 });

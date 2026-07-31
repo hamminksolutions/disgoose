@@ -46,6 +46,44 @@ export async function getCachedAlbum(
   return data ? rowToAlbum(data as AlbumsRow) : null;
 }
 
+async function resolveAlbum(
+  result: { id: string; title: string; artist: string },
+  { coverArt, supabase }: { coverArt?: CoverArtClient; supabase?: SupabaseClient }
+): Promise<Album> {
+  let coverUrl: string | null = null;
+
+  if (supabase) {
+    const cached = await getCachedAlbum(result.id, { supabase });
+    if (cached) {
+      coverUrl = cached.coverUrl;
+    } else {
+      coverUrl = coverArt ? await coverArt.getCoverUrl(result.id) : null;
+      // ignoreDuplicates -> INSERT ... ON CONFLICT DO NOTHING, so a
+      // concurrent insert of the same new release-group never throws.
+      await supabase.from("albums").upsert(
+        {
+          mb_release_group_id: result.id,
+          title: result.title,
+          artist: result.artist,
+          cover_url: coverUrl,
+        },
+        { onConflict: "mb_release_group_id", ignoreDuplicates: true }
+      );
+      // Re-read so a request that lost the race reports the row that
+      // actually won, not the cover it independently fetched.
+      const settled = await getCachedAlbum(result.id, { supabase });
+      coverUrl = settled?.coverUrl ?? coverUrl;
+    }
+  }
+
+  return {
+    mbReleaseGroupId: result.id,
+    title: result.title,
+    artist: result.artist,
+    coverUrl,
+  };
+}
+
 export async function searchAlbums(
   query: string,
   {
@@ -60,41 +98,8 @@ export async function searchAlbums(
 ): Promise<Album[]> {
   const results = await musicbrainz.searchReleaseGroups(query);
 
-  const albums: Album[] = [];
-  for (const result of results) {
-    let coverUrl: string | null = null;
-
-    if (supabase) {
-      const cached = await getCachedAlbum(result.id, { supabase });
-      if (cached) {
-        coverUrl = cached.coverUrl;
-      } else {
-        coverUrl = coverArt ? await coverArt.getCoverUrl(result.id) : null;
-        // ignoreDuplicates -> INSERT ... ON CONFLICT DO NOTHING, so a
-        // concurrent insert of the same new release-group never throws.
-        await supabase.from("albums").upsert(
-          {
-            mb_release_group_id: result.id,
-            title: result.title,
-            artist: result.artist,
-            cover_url: coverUrl,
-          },
-          { onConflict: "mb_release_group_id", ignoreDuplicates: true }
-        );
-        // Re-read so a request that lost the race reports the row that
-        // actually won, not the cover it independently fetched.
-        const settled = await getCachedAlbum(result.id, { supabase });
-        coverUrl = settled?.coverUrl ?? coverUrl;
-      }
-    }
-
-    albums.push({
-      mbReleaseGroupId: result.id,
-      title: result.title,
-      artist: result.artist,
-      coverUrl,
-    });
-  }
-
-  return albums;
+  // Resolved in parallel: each result may need its own Cover Art Archive
+  // round-trip, and doing those one at a time made a 25-result search take
+  // 10-20+ seconds.
+  return Promise.all(results.map((result) => resolveAlbum(result, { coverArt, supabase })));
 }
