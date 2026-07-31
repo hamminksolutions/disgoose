@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import { randomUUID } from "node:crypto";
 import { sendFriendRequest } from "./sendFriendRequest";
 import { createTestSupabaseClient } from "../supabase/testClient";
-import { createTestUser } from "./testHelpers";
+import { createTestUser } from "../auth/testHelpers";
 
 describe("sendFriendRequest", () => {
   it("creates a pending request from the requester to the named user", async () => {

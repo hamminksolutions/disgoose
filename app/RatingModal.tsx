@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { AlbumHeader } from "./AlbumHeader";
+import { ScoreAndReview } from "./ScoreAndReview";
 
 type RatingDetail = {
   id: string;
@@ -95,38 +97,15 @@ export function RatingModal({ ratingId, onClose }: { ratingId: string; onClose: 
           <p className="text-[13px] text-text-muted">Loading…</p>
         ) : (
           <>
-            <div className="flex gap-[12px]">
-              <div className="aspect-square w-[64px] shrink-0 overflow-hidden rounded-md bg-surface-raised">
-                {detail.album.coverUrl && (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={detail.album.coverUrl}
-                    alt=""
-                    className="h-full w-full object-cover"
-                  />
-                )}
-              </div>
-              <div>
-                <p className="font-heading text-[15px] font-semibold text-text-primary">
-                  {detail.album.title}
-                </p>
-                <p className="text-[13px] text-text-secondary">{detail.album.artist}</p>
-              </div>
-            </div>
+            <AlbumHeader album={detail.album} />
 
             {!editing ? (
               <>
-                <div className="flex items-center gap-[10px]">
-                  <span className="rounded-full bg-accent px-[10px] py-[3px] text-[14px] font-semibold text-canvas">
-                    {(detail.score / 10).toFixed(1)}
-                  </span>
-                  <span className="text-[13px] text-text-secondary">{detail.listenMethod}</span>
-                </div>
-                {detail.reviewText && (
-                  <p className="whitespace-pre-wrap text-[14px] text-text-primary">
-                    {detail.reviewText}
-                  </p>
-                )}
+                <ScoreAndReview
+                  score={detail.score}
+                  listenMethod={detail.listenMethod}
+                  reviewText={detail.reviewText}
+                />
                 <div className="flex gap-[8px]">
                   <button
                     type="button"

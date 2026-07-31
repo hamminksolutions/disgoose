@@ -3,22 +3,32 @@
 import { useState } from "react";
 import type { GridEntry } from "@/lib/ratings/getProfileGrid";
 import { RatingModal } from "./RatingModal";
+import { PublicRatingModal } from "./PublicRatingModal";
 
 function formatScore(score: number) {
   return (score / 10).toFixed(1);
 }
 
-export function ProfileGrid({ entries }: { entries: GridEntry[] }) {
+/** `readOnly` renders the public, non-owner view — no edit/delete affordances in the popup. */
+export function ProfileGrid({
+  entries,
+  readOnly = false,
+}: {
+  entries: GridEntry[];
+  readOnly?: boolean;
+}) {
   const [openRatingId, setOpenRatingId] = useState<string | null>(null);
 
   if (entries.length === 0) {
     return (
       <div className="flex w-full max-w-2xl flex-col items-center gap-[8px] rounded-xl border border-dashed border-border bg-surface py-[28px] text-center">
         <p className="font-heading text-[16px] font-semibold text-text-primary">
-          Your grid is empty — for now
+          {readOnly ? "This grid is empty — for now" : "Your grid is empty — for now"}
         </p>
         <p className="max-w-xs text-[13px] text-text-muted">
-          Rate your first album and it&apos;ll show up here.
+          {readOnly
+            ? "No albums rated yet."
+            : "Rate your first album and it'll show up here."}
         </p>
       </div>
     );
@@ -53,9 +63,12 @@ export function ProfileGrid({ entries }: { entries: GridEntry[] }) {
         ))}
       </div>
 
-      {openRatingId && (
-        <RatingModal ratingId={openRatingId} onClose={() => setOpenRatingId(null)} />
-      )}
+      {openRatingId &&
+        (readOnly ? (
+          <PublicRatingModal ratingId={openRatingId} onClose={() => setOpenRatingId(null)} />
+        ) : (
+          <RatingModal ratingId={openRatingId} onClose={() => setOpenRatingId(null)} />
+        ))}
     </>
   );
 }

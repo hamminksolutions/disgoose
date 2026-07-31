@@ -6,7 +6,7 @@ import type { ListenMethod } from "@/lib/ratings/upsertRating";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
 
-async function requireUser(supabase: Awaited<ReturnType<typeof createServerSupabaseClient>>) {
+async function getCurrentUser(supabase: Awaited<ReturnType<typeof createServerSupabaseClient>>) {
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -17,13 +17,14 @@ export async function GET(
   _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const user = await requireUser(await createServerSupabaseClient());
-  if (!user) {
-    return NextResponse.json({ error: "not_authenticated" }, { status: 401 });
-  }
+  // Public: score/listen method/album are visible to anyone, review text is
+  // gated by ownership/Friendship inside getRatingDetail itself.
+  const user = await getCurrentUser(await createServerSupabaseClient());
 
   const { id } = await params;
-  const detail = await getRatingDetail(id, user.id, { supabase: createAdminSupabaseClient() });
+  const detail = await getRatingDetail(id, user?.id ?? null, {
+    supabase: createAdminSupabaseClient(),
+  });
   if (!detail) {
     return NextResponse.json({ error: "not_found" }, { status: 404 });
   }
@@ -34,7 +35,7 @@ export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const user = await requireUser(await createServerSupabaseClient());
+  const user = await getCurrentUser(await createServerSupabaseClient());
   if (!user) {
     return NextResponse.json({ error: "not_authenticated" }, { status: 401 });
   }
@@ -63,7 +64,7 @@ export async function DELETE(
   _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const user = await requireUser(await createServerSupabaseClient());
+  const user = await getCurrentUser(await createServerSupabaseClient());
   if (!user) {
     return NextResponse.json({ error: "not_authenticated" }, { status: 401 });
   }

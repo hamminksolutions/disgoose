@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import { registerUser } from "../auth/registerUser";
+import { registerUser } from "./registerUser";
 import { createTestSupabaseClient } from "../supabase/testClient";
 
 export async function createTestUser() {

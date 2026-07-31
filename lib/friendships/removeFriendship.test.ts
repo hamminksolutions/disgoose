@@ -3,7 +3,7 @@ import { sendFriendRequest } from "./sendFriendRequest";
 import { acceptFriendRequest } from "./acceptFriendRequest";
 import { removeFriendship } from "./removeFriendship";
 import { createTestSupabaseClient } from "../supabase/testClient";
-import { createTestUser } from "./testHelpers";
+import { createTestUser } from "../auth/testHelpers";
 
 describe("removeFriendship", () => {
   it("lets the addressee decline a pending request", async () => {

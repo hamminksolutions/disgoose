@@ -65,4 +65,23 @@ describe("registerUser", () => {
     );
     expect(retry.userId).toBeTruthy();
   });
+
+  it("rejects a username that's already taken by a different-case variant", async () => {
+    const username = `Taken_${randomUUID().slice(0, 8)}`;
+    await registerUser(
+      { email: `${randomUUID()}@example.test`, password: "correct-horse-battery-staple", username },
+      buildAuthDeps()
+    );
+
+    await expect(
+      registerUser(
+        {
+          email: `${randomUUID()}@example.test`,
+          password: "correct-horse-battery-staple",
+          username: username.toUpperCase(),
+        },
+        buildAuthDeps()
+      )
+    ).rejects.toThrow();
+  });
 });

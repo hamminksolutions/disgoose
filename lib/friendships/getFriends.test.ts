@@ -3,7 +3,7 @@ import { sendFriendRequest } from "./sendFriendRequest";
 import { acceptFriendRequest } from "./acceptFriendRequest";
 import { getFriends } from "./getFriends";
 import { createTestSupabaseClient } from "../supabase/testClient";
-import { createTestUser } from "./testHelpers";
+import { createTestUser } from "../auth/testHelpers";
 
 describe("getFriends", () => {
   it("lists accepted friends regardless of who sent the original request", async () => {

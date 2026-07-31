@@ -1,4 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { findUserByUsername } from "../users/findUserByUsername";
 
 export type FriendshipStatus = "pending" | "accepted";
 
@@ -18,15 +19,11 @@ export async function sendFriendRequest(
   { requesterId, addresseeUsername }: SendFriendRequestInput,
   { supabase }: { supabase: SupabaseClient }
 ): Promise<Friendship> {
-  const { data: addressee, error: addresseeError } = await supabase
-    .from("users")
-    .select("id")
-    .eq("username", addresseeUsername)
-    .single();
-  if (addresseeError || !addressee) {
+  const addressee = await findUserByUsername(addresseeUsername, { supabase });
+  if (!addressee) {
     throw new Error(`No user found with username "${addresseeUsername}"`);
   }
-  const addresseeId = addressee.id as string;
+  const addresseeId = addressee.id;
 
   if (addresseeId === requesterId) {
     throw new Error("You can't send a friend request to yourself");

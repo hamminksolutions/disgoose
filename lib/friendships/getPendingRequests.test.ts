@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import { sendFriendRequest } from "./sendFriendRequest";
 import { getPendingRequests } from "./getPendingRequests";
 import { createTestSupabaseClient } from "../supabase/testClient";
-import { createTestUser } from "./testHelpers";
+import { createTestUser } from "../auth/testHelpers";
 
 describe("getPendingRequests", () => {
   it("lists pending requests addressed to the user, with the requester's username", async () => {

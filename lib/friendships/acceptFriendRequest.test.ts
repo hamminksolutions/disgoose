@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import { sendFriendRequest } from "./sendFriendRequest";
 import { acceptFriendRequest } from "./acceptFriendRequest";
 import { createTestSupabaseClient } from "../supabase/testClient";
-import { createTestUser } from "./testHelpers";
+import { createTestUser } from "../auth/testHelpers";
 
 describe("acceptFriendRequest", () => {
   it("turns a pending request into an accepted friendship when the addressee accepts", async () => {
