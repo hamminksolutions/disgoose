@@ -110,7 +110,7 @@ By proxying yourself (instead of letting the frontend query MusicBrainz directly
 - **Performance:** the grid loads 40 covers at once — use image lazy-loading and Next.js's built-in image optimization, now straightforward since covers are mirrored to Supabase Storage (ADR-0004) instead of an external host.
 - **Privacy/GDPR:** the production Supabase project is provisioned in the EU region (confirmed). A minimal privacy statement is needed, and account deletion (`DELETE /api/account`, section 5) is self-service, not a manual support task.
 - **Observability:** error tracking (e.g. Sentry) so a production failure (an unhandled MusicBrainz timeout, a failed cover upload) surfaces as an alert, not a support ticket.
-- **CI:** lint, typecheck, and `vitest run` on every PR before merge.
+- **CI:** GitHub Actions, one workflow with two parallel jobs, triggered on every PR and on push to `master`: (a) lint + `tsc --noEmit` + `vitest run` (fast), (b) the Playwright e2e suite (slower, kept separate so it doesn't gate the fast job's turnaround). Node version matches whatever the Vercel project build uses, not an independently pinned number. Both jobs are required status checks in branch protection on `master` — no merge if either fails.
 - **Environments:** a separate staging Supabase project, distinct from production, so schema migrations are tried against non-production data first.
 
 ## 7. Testing strategy
