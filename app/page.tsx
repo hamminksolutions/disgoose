@@ -6,6 +6,7 @@ import { getPendingRequests } from "@/lib/friendships/getPendingRequests";
 import { getFriends } from "@/lib/friendships/getFriends";
 import { ProfileGrid } from "./ProfileGrid";
 import { logoutAction } from "./logout/actions";
+import { DeleteAccountButton } from "./DeleteAccountButton";
 import { FriendRequestsBell } from "./FriendRequestsBell";
 import { AddFriendForm } from "./AddFriendForm";
 import { FriendsList } from "./FriendsList";
@@ -68,6 +69,7 @@ export default async function HomePage() {
               Log out
             </button>
           </form>
+          <DeleteAccountButton />
         </div>
       </div>
 
