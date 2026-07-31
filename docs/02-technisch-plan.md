@@ -42,7 +42,7 @@ For v1, MusicBrainz + Cover Art Archive is therefore the best choice: freely acc
 - **Search:** `https://musicbrainz.org/ws/2/release-group/?query=...&fmt=json` — search at the **release-group** level (the "album" itself), not the **release** level (a specific pressing/reissue), otherwise you get duplicates of the same album in results.
 - **Covers:** Cover Art Archive, linked via MBID. Not every release-group has art — build in a fallback placeholder.
 - **Important:** MusicBrainz asks for a proper `User-Agent` header with your app name and contact info, and expects reasonable use (no abuse with bursts of requests). Cache aggressively in your own database, therefore: once an album has been looked up/added by a user, store title/artist/cover URL locally so you don't query MusicBrainz/Cover Art Archive again on every profile view.
-- **Cover hosting:** covers are mirrored to Supabase Storage on first cache of an album, not linked directly to Cover Art Archive. See [ADR-0004](adr/0004-mirror-cover-art-to-own-storage.md) for why the original "direct linking is fine for v1" call was reversed.
+- **Cover hosting:** covers are mirrored to Supabase Storage on first cache of an album, not linked directly to Cover Art Archive. See [ADR-0004](adr/0004-mirror-cover-art-to-own-storage.md) for why the original "direct linking is fine for v1" call was reversed. Albums already cached from the PoC period (still pointing directly at Cover Art Archive) are migrated by a one-off backfill script run once before launch — not a lazy re-mirror on next access, since the PoC-era cache is small enough that a bounded one-time pass is simpler than adding self-healing logic to the read path.
 
 ## 4. Data model (v1)
 
