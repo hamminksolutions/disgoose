@@ -5,6 +5,7 @@ import { deleteRating } from "@/lib/ratings/deleteRating";
 import type { ListenMethod } from "@/lib/ratings/upsertRating";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
+import { ratingsRateLimitResponse } from "../rateLimitGuard";
 
 async function getCurrentUser(supabase: Awaited<ReturnType<typeof createServerSupabaseClient>>) {
   const {
@@ -40,6 +41,12 @@ export async function PUT(
     return NextResponse.json({ error: "not_authenticated" }, { status: 401 });
   }
 
+  const admin = createAdminSupabaseClient();
+  const rateLimitResponse = await ratingsRateLimitResponse(user.id, { supabase: admin });
+  if (rateLimitResponse) {
+    return rateLimitResponse;
+  }
+
   const { id } = await params;
   const body = (await request.json()) as {
     score?: number;
@@ -48,9 +55,7 @@ export async function PUT(
   };
 
   try {
-    const rating = await updateRating(id, user.id, body, {
-      supabase: createAdminSupabaseClient(),
-    });
+    const rating = await updateRating(id, user.id, body, { supabase: admin });
     return NextResponse.json({ rating });
   } catch (error) {
     return NextResponse.json(

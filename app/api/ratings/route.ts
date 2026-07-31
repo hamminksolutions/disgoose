@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { upsertRating, type ListenMethod } from "@/lib/ratings/upsertRating";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
+import { ratingsRateLimitResponse } from "./rateLimitGuard";
 
 export async function POST(request: NextRequest) {
   const supabase = await createServerSupabaseClient();
@@ -12,6 +13,12 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "not_authenticated" }, { status: 401 });
   }
 
+  const admin = createAdminSupabaseClient();
+  const rateLimitResponse = await ratingsRateLimitResponse(user.id, { supabase: admin });
+  if (rateLimitResponse) {
+    return rateLimitResponse;
+  }
+
   const body = await request.json();
   const { mbReleaseGroupId, score, listenMethod, reviewText } = body as {
     mbReleaseGroupId: string;
@@ -20,7 +27,6 @@ export async function POST(request: NextRequest) {
     reviewText?: string | null;
   };
 
-  const admin = createAdminSupabaseClient();
   // Search (ticket #3) already caches every result into `albums`, so the
   // row exists by the time a user picks it from search results — this
   // just resolves the client-facing mb_release_group_id to the internal id.
