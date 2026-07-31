@@ -1,8 +1,16 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
+export type CoverArtMirror = {
+  mirror: (
+    coverArtUrl: string,
+    mbReleaseGroupId: string,
+    deps: { supabase: SupabaseClient }
+  ) => Promise<string | null>;
+};
+
 const BUCKET = "covers";
 
-export function createCoverArtMirror(fetchImpl: typeof fetch) {
+export function createCoverArtMirror(fetchImpl: typeof fetch): CoverArtMirror {
   return {
     async mirror(
       coverArtUrl: string,

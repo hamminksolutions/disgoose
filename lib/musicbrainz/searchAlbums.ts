@@ -1,4 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import type { CoverArtMirror } from "./coverArtMirror";
 
 export type Album = {
   mbReleaseGroupId: string;
@@ -15,14 +16,6 @@ type MusicBrainzClient = {
 
 type CoverArtClient = {
   getCoverUrl: (mbReleaseGroupId: string) => Promise<string | null>;
-};
-
-type CoverArtMirror = {
-  mirror: (
-    coverArtUrl: string,
-    mbReleaseGroupId: string,
-    deps: { supabase: SupabaseClient }
-  ) => Promise<string | null>;
 };
 
 type AlbumsRow = {
