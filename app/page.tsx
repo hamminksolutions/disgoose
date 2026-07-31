@@ -63,6 +63,10 @@ export default async function HomePage() {
       </div>
 
       <ProfileGrid entries={grid} />
+
+      <Link href="/ratings" className="text-[13px] text-text-muted">
+        View all ratings →
+      </Link>
     </main>
   );
 }
