@@ -2,8 +2,13 @@ import Link from "next/link";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
 import { getProfileGrid } from "@/lib/ratings/getProfileGrid";
+import { getPendingRequests } from "@/lib/friendships/getPendingRequests";
+import { getFriends } from "@/lib/friendships/getFriends";
 import { ProfileGrid } from "./ProfileGrid";
 import { logoutAction } from "./logout/actions";
+import { FriendRequestsBell } from "./FriendRequestsBell";
+import { AddFriendForm } from "./AddFriendForm";
+import { FriendsList } from "./FriendsList";
 
 export default async function HomePage() {
   const supabase = await createServerSupabaseClient();
@@ -39,13 +44,17 @@ export default async function HomePage() {
   }
 
   const admin = createAdminSupabaseClient();
-  const [{ data: profile }, grid] = await Promise.all([
+  const [{ data: profile }, grid, pendingRequests, friends] = await Promise.all([
     admin.from("users").select("username").eq("id", user.id).single(),
     getProfileGrid(user.id, { supabase: admin }),
+    getPendingRequests(user.id, { supabase: admin }),
+    getFriends(user.id, { supabase: admin }),
   ]);
 
   return (
     <main className="flex flex-1 flex-col items-center gap-[18px] p-[28px]">
+      <FriendRequestsBell initialRequests={pendingRequests} />
+
       <div className="flex w-full max-w-2xl items-center justify-between">
         <p className="font-heading text-[18px] font-semibold text-text-primary">
           {profile?.username ?? user.email}
@@ -61,6 +70,12 @@ export default async function HomePage() {
           </form>
         </div>
       </div>
+
+      <div className="w-full max-w-2xl">
+        <AddFriendForm />
+      </div>
+
+      <FriendsList initialFriends={friends} />
 
       <ProfileGrid entries={grid} />
 
