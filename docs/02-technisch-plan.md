@@ -42,7 +42,7 @@ For v1, MusicBrainz + Cover Art Archive is therefore the best choice: freely acc
 - **Search:** `https://musicbrainz.org/ws/2/release-group/?query=...&fmt=json` — search at the **release-group** level (the "album" itself), not the **release** level (a specific pressing/reissue), otherwise you get duplicates of the same album in results.
 - **Covers:** Cover Art Archive, linked via MBID. Not every release-group has art — build in a fallback placeholder.
 - **Important:** MusicBrainz asks for a proper `User-Agent` header with your app name and contact info, and expects reasonable use (no abuse with bursts of requests). Cache aggressively in your own database, therefore: once an album has been looked up/added by a user, store title/artist/cover URL locally so you don't query MusicBrainz/Cover Art Archive again on every profile view.
-- **Cover hosting:** consider whether you link covers directly to Cover Art Archive URLs (simple, but dependent on their uptime) or mirror them yourself to your own storage (more robust, but more work/cost). For v1: direct linking is fine, with caching of the URL in your database.
+- **Cover hosting:** covers are mirrored to Supabase Storage on first cache of an album, not linked directly to Cover Art Archive. See [ADR-0004](adr/0004-mirror-cover-art-to-own-storage.md) for why the original "direct linking is fine for v1" call was reversed.
 
 ## 4. Data model (v1)
 
@@ -60,7 +60,7 @@ albums
   lastfm_url            text nullable         -- reserved for later expansion, not used in v1
   title                 text
   artist                text
-  cover_url             text nullable
+  cover_url             text nullable   -- points at Supabase Storage (mirrored), not Cover Art Archive directly — see ADR-0004
   cached_at             timestamptz
 
 ratings
@@ -69,21 +69,33 @@ ratings
   album_id       uuid references albums(id)
   score          integer         -- stored as tenths, e.g. 85 = 8.5, avoids rounding errors
   listen_method  text            -- enum: spotify | cd | vinyl | streaming_other | other
-  review_text    text nullable
+  review_text    text nullable   -- visible to any visitor's profile view for score/listen_method; review_text itself only to the owner and accepted Friends (see friendships below, CONTEXT.md)
   created_at     timestamptz
   updated_at     timestamptz
   unique (user_id, album_id)     -- enforces: one rating per album per user
+
+friendships
+  id             uuid primary key
+  requester_id   uuid references users(id)
+  addressee_id   uuid references users(id)
+  status         text            -- enum: pending | accepted
+  created_at     timestamptz
+  unique (requester_id, addressee_id)  -- a request is either pending or accepted; declining/unfriending deletes the row (silent, no notification — see CONTEXT.md and ADR-0005)
 ```
 
 ## 5. API layer (own backend endpoints)
 
-- `GET /api/albums/search?q=...` → proxies to MusicBrainz, caches results
-- `POST /api/ratings` → creates or updates (upserts) a rating for the logged-in user
-- `GET /api/users/:username/profile` → fetches the user + their ratings for the grid: `ORDER BY created_at DESC LIMIT 40`. Important: this shows only the 40 most recent ratings; older ratings are **not** deleted, just not shown in the grid. Put an index on `ratings(user_id, created_at)` so this query stays fast as users rate more than 40 albums.
-- `GET /api/users/:username/ratings` → *all* ratings of a user (for the list view), paginated (e.g. 20-50 per page) and sortable (newest first / highest rated first). Same underlying data as the grid query, but without the LIMIT 40 and with pagination.
-- `GET /api/ratings/:id` → detail of a single rating (album + score + listen method + full review text) for the album detail popup. Note: only relevant to the owner in v1 (there is no public profile view), so this endpoint must check that the requested rating belongs to the logged-in user.
+- `GET /api/albums/search?q=...` → proxies to MusicBrainz, caches results. Rate-limited per IP (v1: a simple fixed-window limit, e.g. 20 req/min) — both to respect MusicBrainz's "reasonable use" etiquette and because this endpoint is reachable by anyone, not just logged-in users.
+- `POST /api/ratings` → creates or updates (upserts) a rating for the logged-in user. Rate-limited per user to blunt scripted spam.
+- `GET /api/users/:username/profile` → **public, no auth required** (v1 adds a public read-only profile view). Fetches the user + their ratings for the grid: `ORDER BY created_at DESC LIMIT 40`. Returns score + listen method for every rating regardless of viewer; review text is included only if the viewer is the owner or an accepted Friend (see `friendships`, section 4) — otherwise omitted from the response, not just hidden client-side. Important: this shows only the 40 most recent ratings; older ratings are **not** deleted, just not shown in the grid. Put an index on `ratings(user_id, created_at)` so this query stays fast as users rate more than 40 albums.
+- `GET /api/users/:username/ratings` → *all* ratings of a user (for the list view), paginated (e.g. 20-50 per page) and sortable (newest first / highest rated first). Same underlying data as the grid query, but without the LIMIT 40 and with pagination. Owner-only in v1 (no public paginated list view — public visitors only get the grid).
+- `GET /api/ratings/:id` → detail of a single rating (album + score + listen method + full review text) for the album detail popup. Same visibility rule as the profile endpoint: review text only for the owner or an accepted Friend.
 - `PUT /api/ratings/:id` → changes the score, listen method, and/or review of an existing rating (separate from the upsert-on-re-rating logic in `POST /api/ratings`).
 - `DELETE /api/ratings/:id` → deletes a rating entirely; the album itself stays in the `albums` cache (which is shared between users).
+- `POST /api/friend-requests` → sends a Friend Request to a user (found by username search, same search UX pattern as album search).
+- `POST /api/friend-requests/:id/accept` → accepts a pending request, turning it into a Friendship (`status: accepted`).
+- `DELETE /api/friend-requests/:id` → declines a pending request, or ends an existing Friendship — same endpoint either way, since both are a plain delete of the `friendships` row. Silent: no notification to the other party (see ADR-0005).
+- `DELETE /api/account` → deletes the logged-in user's account and all owned data (cascades to `ratings` and `friendships` via foreign keys) — GDPR right-to-erasure, self-service.
 
 **Listen method:** established as a fixed, manually selectable list of icons (spotify/cd/vinyl/streaming_other/other) — no automatic detection. This keeps the `listen_method` enum in the data model (section 4) simple and avoids unnecessary complexity (e.g. link recognition) that isn't needed for v1.
 
@@ -91,17 +103,22 @@ By proxying yourself (instead of letting the frontend query MusicBrainz directly
 
 ## 6. Non-functional requirements
 
-- **Resilience:** if MusicBrainz/Cover Art Archive is temporarily unreachable, the app must still show existing profiles/grids (since that data lives in your own database) — only *adding new albums* fails temporarily.
-- **Performance:** the grid loads 40 covers at once — use image lazy-loading and possibly Next.js's built-in image optimization.
-- **Privacy/GDPR:** you store personal data (email) of EU users — choose a Supabase region in the EU, and think about a minimal privacy statement, even though this is "just" an MVP.
+- **Resilience:** if MusicBrainz/Cover Art Archive is temporarily unreachable, the app must still show existing profiles/grids (since that data lives in your own database) — only *adding new albums* fails temporarily. Already handled in the UI (retry affordance on search failure).
+- **Performance:** the grid loads 40 covers at once — use image lazy-loading and Next.js's built-in image optimization, now straightforward since covers are mirrored to Supabase Storage (ADR-0004) instead of an external host.
+- **Privacy/GDPR:** the production Supabase project is provisioned in the EU region (confirmed). A minimal privacy statement is needed, and account deletion (`DELETE /api/account`, section 5) is self-service, not a manual support task.
+- **Observability:** error tracking (e.g. Sentry) so a production failure (an unhandled MusicBrainz timeout, a failed cover upload) surfaces as an alert, not a support ticket.
+- **CI:** lint, typecheck, and `vitest run` on every PR before merge.
+- **Environments:** a separate staging Supabase project, distinct from production, so schema migrations are tried against non-production data first.
 
 ## 7. Testing strategy
 
 Build with test-driven development (red-green-refactor) for the core logic (specifically the rating upsert logic and the MusicBrainz response mapping). See the separate document on Claude Code skills — the `/tdd` skill enforces this pattern so Claude Code doesn't just ship untested code.
 
-## 8. Open technical questions (hard, but important)
+v1 adds a small Playwright e2e suite on top of the existing vitest unit tests, covering the handful of paths that cross layers in ways unit tests can't catch — register/login, add an album, see it in the grid, and the friend-accept → review-becomes-visible flow. Runs in CI (section 6) on every PR.
 
-- **Scalability of caching:** what do you do if two users simultaneously add the same new album that isn't in your `albums` table yet — a race condition on the unique constraint? (Answer: `ON CONFLICT DO NOTHING` / upsert logic, but this must be built deliberately, not forgotten.)
-- **Moderation of review text:** even though this is v1 with few users — will you do any basic content filtering (spam/abuse), or knowingly accept that risk for now?
-- **What if an album isn't in MusicBrainz** (very obscure or very new releases)? Do you build a "manually add without MBID" fallback, or accept that gap in v1?
-- **Where does your app run** — is a Vercel/Supabase combo acceptable to you cost-wise long-term, or do you deliberately want to stay vendor-independent from day one? That significantly changes the technical choices in section 2.
+## 8. Open technical questions — resolved during the v1 grilling session
+
+- **Scalability of caching:** `ON CONFLICT DO NOTHING` / upsert logic on the `albums` unique constraint. Already implemented.
+- **Moderation of review text:** no automated filtering for v1 — exposure is low (no discovery surface beyond a direct profile link, and review text itself is now further gated to accepted Friends only, see ADR-0005). Handle abuse manually via the Supabase dashboard if it ever comes up; revisit if real usage shows a need.
+- **What if an album isn't in MusicBrainz:** stays out of scope — see [ADR-0002](adr/0002-no-manual-album-entry.md).
+- **Where does your app run:** Vercel + Supabase confirmed. Production Supabase project is live (EU region, linked to `hamminksolutions/disgoose`).
