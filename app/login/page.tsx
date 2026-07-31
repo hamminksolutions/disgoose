@@ -1,11 +1,13 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 import Link from "next/link";
 import { loginAction } from "./actions";
+import { ForgotPasswordModal } from "./ForgotPasswordModal";
 
 export default function LoginPage() {
   const [state, formAction, pending] = useActionState(loginAction, { error: null });
+  const [forgotPasswordOpen, setForgotPasswordOpen] = useState(false);
 
   return (
     <main className="flex flex-1 items-center justify-center p-[16px]">
@@ -49,6 +51,14 @@ export default function LoginPage() {
           {pending ? "Logging in…" : "Log in"}
         </button>
 
+        <button
+          type="button"
+          onClick={() => setForgotPasswordOpen(true)}
+          className="text-[13px] text-accent"
+        >
+          Forgot password?
+        </button>
+
         <p className="text-[13px] text-text-muted">
           New here?{" "}
           <Link href="/register" className="text-accent">
@@ -56,6 +66,10 @@ export default function LoginPage() {
           </Link>
         </p>
       </form>
+
+      {forgotPasswordOpen && (
+        <ForgotPasswordModal onClose={() => setForgotPasswordOpen(false)} />
+      )}
     </main>
   );
 }

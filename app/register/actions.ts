@@ -1,14 +1,15 @@
 "use server";
 
-import { redirect } from "next/navigation";
 import { registerUser } from "@/lib/auth/registerUser";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
 
+export type RegisterActionState = { error: string | null; registered: boolean };
+
 export async function registerAction(
-  _prevState: { error: string | null },
+  _prevState: RegisterActionState,
   formData: FormData
-): Promise<{ error: string | null }> {
+): Promise<RegisterActionState> {
   const email = String(formData.get("email") ?? "");
   const password = String(formData.get("password") ?? "");
   const username = String(formData.get("username") ?? "");
@@ -22,8 +23,10 @@ export async function registerAction(
       }
     );
   } catch (error) {
-    return { error: error instanceof Error ? error.message : "Could not register" };
+    return { error: error instanceof Error ? error.message : "Could not register", registered: false };
   }
 
-  redirect("/");
+  // No session yet — registering no longer auto-confirms the email (see
+  // lib/auth/registerUser.ts), so there's nowhere logged-in to redirect to.
+  return { error: null, registered: true };
 }

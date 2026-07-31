@@ -5,7 +5,26 @@ import Link from "next/link";
 import { registerAction } from "./actions";
 
 export default function RegisterPage() {
-  const [state, formAction, pending] = useActionState(registerAction, { error: null });
+  const [state, formAction, pending] = useActionState(registerAction, {
+    error: null,
+    registered: false,
+  });
+
+  if (state.registered) {
+    return (
+      <main className="flex flex-1 items-center justify-center p-[16px]">
+        <div className="flex w-full max-w-sm flex-col gap-[12px] rounded-xl bg-surface p-[28px] text-center">
+          <h1 className="font-heading text-[20px] font-bold text-text-primary">Check your email</h1>
+          <p className="text-[13px] text-text-secondary">
+            We&apos;ve sent a confirmation link — click it to activate your account, then log in.
+          </p>
+          <Link href="/login" className="text-[13px] text-accent">
+            Back to login
+          </Link>
+        </div>
+      </main>
+    );
+  }
 
   return (
     <main className="flex flex-1 items-center justify-center p-[16px]">

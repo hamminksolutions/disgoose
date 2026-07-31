@@ -38,10 +38,6 @@ export async function registerUser(
   }
   const userId = signUpData.user.id;
 
-  // Auto-confirm so sign-in works immediately; the confirmation email
-  // triggered by signUp above still goes out (see supabase/config.toml).
-  await supabaseAdmin.auth.admin.updateUserById(userId, { email_confirm: true });
-
   const { error: profileError } = await supabaseAdmin
     .from("users")
     .insert({ id: userId, email, username });
@@ -52,13 +48,8 @@ export async function registerUser(
     throw new Error(`Could not create user profile: ${profileError.message}`);
   }
 
-  const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
-    email,
-    password,
-  });
-  if (signInError) {
-    throw signInError;
-  }
-
-  return { userId, session: signInData.session };
+  // No auto-confirm, no auto-login: email_confirm defaults to false (see
+  // supabase/config.toml [auth.email] enable_confirmations), so signUpData
+  // never carries a session until the confirmation link is clicked.
+  return { userId, session: signUpData.session };
 }

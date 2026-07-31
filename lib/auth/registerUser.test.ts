@@ -19,7 +19,7 @@ async function findMailpitMessageTo(email: string) {
 }
 
 describe("registerUser", () => {
-  it("returns an active session immediately, with no email-confirmation gate", async () => {
+  it("does not return an active session — the email must be confirmed first", async () => {
     const email = `${randomUUID()}@example.test`;
 
     const result = await registerUser(
@@ -27,10 +27,10 @@ describe("registerUser", () => {
       buildAuthDeps()
     );
 
-    expect(result.session?.access_token).toBeTruthy();
+    expect(result.session).toBeNull();
   });
 
-  it("sends a verification email that does not gate the returned session", async () => {
+  it("sends a verification email", async () => {
     const email = `${randomUUID()}@example.test`;
 
     await registerUser(
@@ -63,6 +63,6 @@ describe("registerUser", () => {
       { email: secondEmail, password: "correct-horse-battery-staple", username: `${username}_2` },
       buildAuthDeps()
     );
-    expect(retry.session?.access_token).toBeTruthy();
+    expect(retry.userId).toBeTruthy();
   });
 });

@@ -223,9 +223,8 @@ enable_signup = true
 # addresses. If disabled, only the new email is required to confirm.
 double_confirm_changes = true
 # If enabled, users need to confirm their email address before signing in.
-# Disgoose sends this email but does not gate sign-in on it: registerUser()
-# auto-confirms the account server-side right after signup (see ticket #2 /
-# CLAUDE.md agent-skills notes), so this only controls whether the email goes out.
+# Disgoose relies on this: registerUser() no longer auto-confirms, so a new
+# account can't log in until this confirmation email's link is clicked (#27).
 enable_confirmations = true
 # If enabled, users will need to reauthenticate or have logged in recently to change their password.
 secure_password_change = false
