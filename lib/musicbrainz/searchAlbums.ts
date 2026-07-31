@@ -17,6 +17,14 @@ type CoverArtClient = {
   getCoverUrl: (mbReleaseGroupId: string) => Promise<string | null>;
 };
 
+type CoverArtMirror = {
+  mirror: (
+    coverArtUrl: string,
+    mbReleaseGroupId: string,
+    deps: { supabase: SupabaseClient }
+  ) => Promise<string | null>;
+};
+
 type AlbumsRow = {
   mb_release_group_id: string;
   title: string;
@@ -46,9 +54,29 @@ export async function getCachedAlbum(
   return data ? rowToAlbum(data as AlbumsRow) : null;
 }
 
+// Finds cover art for a release-group not yet in our cache and, if a mirror
+// is configured, replaces the Cover Art Archive URL with our own mirrored
+// copy so cover_url never points at a third party once mirroring is wired up.
+async function fetchCoverUrl(
+  mbReleaseGroupId: string,
+  {
+    coverArt,
+    coverMirror,
+    supabase,
+  }: { coverArt?: CoverArtClient; coverMirror?: CoverArtMirror; supabase: SupabaseClient }
+): Promise<string | null> {
+  const coverArtUrl = coverArt ? await coverArt.getCoverUrl(mbReleaseGroupId) : null;
+  if (!coverArtUrl || !coverMirror) return coverArtUrl;
+  return coverMirror.mirror(coverArtUrl, mbReleaseGroupId, { supabase });
+}
+
 async function resolveAlbum(
   result: { id: string; title: string; artist: string },
-  { coverArt, supabase }: { coverArt?: CoverArtClient; supabase?: SupabaseClient }
+  {
+    coverArt,
+    coverMirror,
+    supabase,
+  }: { coverArt?: CoverArtClient; coverMirror?: CoverArtMirror; supabase?: SupabaseClient }
 ): Promise<Album> {
   let coverUrl: string | null = null;
 
@@ -57,7 +85,7 @@ async function resolveAlbum(
     if (cached) {
       coverUrl = cached.coverUrl;
     } else {
-      coverUrl = coverArt ? await coverArt.getCoverUrl(result.id) : null;
+      coverUrl = await fetchCoverUrl(result.id, { coverArt, coverMirror, supabase });
       // ignoreDuplicates -> INSERT ... ON CONFLICT DO NOTHING, so a
       // concurrent insert of the same new release-group never throws.
       await supabase.from("albums").upsert(
@@ -89,10 +117,12 @@ export async function searchAlbums(
   {
     musicbrainz,
     coverArt,
+    coverMirror,
     supabase,
   }: {
     musicbrainz: MusicBrainzClient;
     coverArt?: CoverArtClient;
+    coverMirror?: CoverArtMirror;
     supabase?: SupabaseClient;
   }
 ): Promise<Album[]> {
@@ -101,5 +131,7 @@ export async function searchAlbums(
   // Resolved in parallel: each result may need its own Cover Art Archive
   // round-trip, and doing those one at a time made a 25-result search take
   // 10-20+ seconds.
-  return Promise.all(results.map((result) => resolveAlbum(result, { coverArt, supabase })));
+  return Promise.all(
+    results.map((result) => resolveAlbum(result, { coverArt, coverMirror, supabase }))
+  );
 }

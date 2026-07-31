@@ -38,20 +38,25 @@ describe("searchAlbums", () => {
     const coverArt = {
       getCoverUrl: vi.fn().mockResolvedValue("https://coverartarchive.example/in-rainbows.jpg"),
     };
+    const coverMirror = {
+      mirror: vi.fn().mockResolvedValue("https://storage.example/covers/in-rainbows.jpg"),
+    };
 
     const albums = await searchAlbums("in rainbows", {
       musicbrainz,
       coverArt,
+      coverMirror,
       supabase,
     });
 
-    expect(albums[0].coverUrl).toBe(
-      "https://coverartarchive.example/in-rainbows.jpg"
+    expect(coverMirror.mirror).toHaveBeenCalledWith(
+      "https://coverartarchive.example/in-rainbows.jpg",
+      releaseGroupId,
+      { supabase }
     );
+    expect(albums[0].coverUrl).toBe("https://storage.example/covers/in-rainbows.jpg");
     const cached = await getCachedAlbum(releaseGroupId, { supabase });
-    expect(cached?.coverUrl).toBe(
-      "https://coverartarchive.example/in-rainbows.jpg"
-    );
+    expect(cached?.coverUrl).toBe("https://storage.example/covers/in-rainbows.jpg");
   });
 
   it("does not re-fetch cover art for an already-cached release-group", async () => {
@@ -60,6 +65,9 @@ describe("searchAlbums", () => {
     const firstCoverArt = {
       getCoverUrl: vi.fn().mockResolvedValue("https://coverartarchive.example/kid-a.jpg"),
     };
+    const coverMirror = {
+      mirror: vi.fn().mockResolvedValue("https://storage.example/covers/kid-a.jpg"),
+    };
     await searchAlbums("kid a", {
       musicbrainz: {
         searchReleaseGroups: vi
@@ -67,6 +75,7 @@ describe("searchAlbums", () => {
           .mockResolvedValue([{ id: releaseGroupId, title: "Kid A", artist: "Radiohead" }]),
       },
       coverArt: firstCoverArt,
+      coverMirror,
       supabase,
     });
 
@@ -82,7 +91,7 @@ describe("searchAlbums", () => {
     });
 
     expect(secondCoverArt.getCoverUrl).not.toHaveBeenCalled();
-    expect(albums[0].coverUrl).toBe("https://coverartarchive.example/kid-a.jpg");
+    expect(albums[0].coverUrl).toBe("https://storage.example/covers/kid-a.jpg");
   });
 
   it("stores a missing cover as null rather than a placeholder", async () => {
@@ -96,6 +105,28 @@ describe("searchAlbums", () => {
           .mockResolvedValue([{ id: releaseGroupId, title: "Obscure EP", artist: "Nobody" }]),
       },
       coverArt: { getCoverUrl: vi.fn().mockResolvedValue(null) },
+      supabase,
+    });
+
+    expect(albums[0].coverUrl).toBeNull();
+    const cached = await getCachedAlbum(releaseGroupId, { supabase });
+    expect(cached?.coverUrl).toBeNull();
+  });
+
+  it("caches no cover, rather than the third-party URL, when mirroring fails", async () => {
+    const supabase = createTestSupabaseClient();
+    const releaseGroupId = randomUUID();
+
+    const albums = await searchAlbums("mirroring failure case", {
+      musicbrainz: {
+        searchReleaseGroups: vi.fn().mockResolvedValue([
+          { id: releaseGroupId, title: "Flaky Mirror", artist: "Nobody" },
+        ]),
+      },
+      coverArt: {
+        getCoverUrl: vi.fn().mockResolvedValue("https://coverartarchive.example/flaky.jpg"),
+      },
+      coverMirror: { mirror: vi.fn().mockResolvedValue(null) },
       supabase,
     });
 
@@ -152,6 +183,9 @@ describe("searchAlbums", () => {
     const coverArt = {
       getCoverUrl: vi.fn(async (id: string) => `https://coverartarchive.example/${id}.jpg`),
     };
+    const coverMirror = {
+      mirror: vi.fn(async (_url: string, id: string) => `https://storage.example/covers/${id}.jpg`),
+    };
 
     const albums = await searchAlbums("radiohead", {
       musicbrainz: {
@@ -162,14 +196,15 @@ describe("searchAlbums", () => {
         ]),
       },
       coverArt,
+      coverMirror,
       supabase,
     });
 
     expect(albums.map((a) => a.mbReleaseGroupId)).toEqual([idA, idB, idC]);
     expect(albums.map((a) => a.coverUrl)).toEqual([
-      `https://coverartarchive.example/${idA}.jpg`,
-      `https://coverartarchive.example/${idB}.jpg`,
-      `https://coverartarchive.example/${idC}.jpg`,
+      `https://storage.example/covers/${idA}.jpg`,
+      `https://storage.example/covers/${idB}.jpg`,
+      `https://storage.example/covers/${idC}.jpg`,
     ]);
   });
 });
