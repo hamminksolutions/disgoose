@@ -42,6 +42,7 @@ export function ProfileGrid({
             key={entry.ratingId}
             type="button"
             onClick={() => setOpenRatingId(entry.ratingId)}
+            aria-label={`View rating for ${entry.title} by ${entry.artist}`}
             className="group relative aspect-square overflow-hidden rounded-md bg-surface-raised text-left"
           >
             {entry.coverUrl ? (

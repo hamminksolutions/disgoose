@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { AlbumHeader } from "./AlbumHeader";
 import { ScoreAndReview } from "./ScoreAndReview";
+import { useEscapeToClose } from "./useEscapeToClose";
 
 type RatingDetail = {
   id: string;
@@ -36,6 +37,7 @@ export function RatingModal({ ratingId, onClose }: { ratingId: string; onClose: 
   const [reviewText, setReviewText] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  useEscapeToClose(onClose);
 
   useEffect(() => {
     fetch(`/api/ratings/${ratingId}`)

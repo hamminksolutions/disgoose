@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { RatingCardContent } from "./RatingCardContent";
+import { useEscapeToClose } from "./useEscapeToClose";
 
 type RatingDetail = {
   score: number;
@@ -12,6 +13,7 @@ type RatingDetail = {
 
 export function PublicRatingModal({ ratingId, onClose }: { ratingId: string; onClose: () => void }) {
   const [detail, setDetail] = useState<RatingDetail | null>(null);
+  useEscapeToClose(onClose);
 
   useEffect(() => {
     fetch(`/api/ratings/${ratingId}`)
