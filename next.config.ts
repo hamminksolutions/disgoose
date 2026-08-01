@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import { withSentryConfig } from "@sentry/nextjs";
 
 const nextConfig: NextConfig = {
   // Next 16 blocks cross-origin dev-resource requests by default. The e2e
@@ -10,4 +11,12 @@ const nextConfig: NextConfig = {
   allowedDevOrigins: ["127.0.0.1"],
 };
 
-export default nextConfig;
+export default withSentryConfig(nextConfig, {
+  // Source map upload needs org/project/authToken (docs/agents issue #35) —
+  // all optional here so a build without those env vars set still succeeds,
+  // it just skips uploading maps.
+  org: process.env.SENTRY_ORG,
+  project: process.env.SENTRY_PROJECT,
+  authToken: process.env.SENTRY_AUTH_TOKEN,
+  silent: true,
+});
