@@ -2,16 +2,23 @@ import Link from "next/link";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
 import { getProfileGrid } from "@/lib/ratings/getProfileGrid";
+import { getRatingStats } from "@/lib/ratings/getRatingStats";
+import type { SortBy } from "@/lib/ratings/getAllRatings";
 import { getPendingRequests } from "@/lib/friendships/getPendingRequests";
 import { getFriends } from "@/lib/friendships/getFriends";
 import { ProfileGrid } from "./ProfileGrid";
+import { ProfileHeader } from "./ProfileHeader";
 import { logoutAction } from "./logout/actions";
 import { DeleteAccountButton } from "./DeleteAccountButton";
 import { FriendRequestsBell } from "./FriendRequestsBell";
 import { AddFriendForm } from "./AddFriendForm";
 import { FriendsList } from "./FriendsList";
 
-export default async function HomePage() {
+export default async function HomePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ sortBy?: string }>;
+}) {
   const supabase = await createServerSupabaseClient();
   const {
     data: { user },
@@ -45,12 +52,22 @@ export default async function HomePage() {
   }
 
   const admin = createAdminSupabaseClient();
-  const [{ data: profile }, grid, pendingRequests, friends] = await Promise.all([
-    admin.from("users").select("username").eq("id", user.id).single(),
+  const [{ data: profile }, grid, stats, pendingRequests, friends] = await Promise.all([
+    admin.from("users").select("username, created_at").eq("id", user.id).single(),
     getProfileGrid(user.id, { supabase: admin }),
+    getRatingStats(user.id, { supabase: admin }),
     getPendingRequests(user.id, { supabase: admin }),
     getFriends(user.id, { supabase: admin }),
   ]);
+
+  const params = await searchParams;
+  const sortBy: SortBy = params.sortBy === "highest_rated" ? "highest_rated" : "newest";
+  const sortedGrid =
+    sortBy === "highest_rated" ? [...grid].sort((a, b) => b.score - a.score) : grid;
+
+  const collectingSince = profile?.created_at
+    ? new Date(profile.created_at).getFullYear()
+    : null;
 
   return (
     <main className="flex flex-1 flex-col items-center gap-[18px] p-[28px]">
@@ -79,7 +96,35 @@ export default async function HomePage() {
 
       <FriendsList initialFriends={friends} />
 
-      <ProfileGrid entries={grid} />
+      {profile?.username && (
+        <ProfileHeader username={profile.username} collectingSince={collectingSince} stats={stats} />
+      )}
+
+      {sortedGrid.length > 0 && (
+        <div className="flex w-full max-w-2xl items-center justify-between">
+          <p className="font-heading text-[16px] font-bold text-text-secondary">Grid</p>
+          <div className="flex gap-[6px] rounded-full border border-border bg-surface p-[6px]">
+            <Link
+              href="/?sortBy=newest"
+              className={`rounded-full px-[14px] py-[7px] text-[13px] font-semibold ${
+                sortBy === "newest" ? "bg-accent text-canvas" : "text-text-secondary"
+              }`}
+            >
+              New
+            </Link>
+            <Link
+              href="/?sortBy=highest_rated"
+              className={`rounded-full px-[14px] py-[7px] text-[13px] font-semibold ${
+                sortBy === "highest_rated" ? "bg-accent text-canvas" : "text-text-secondary"
+              }`}
+            >
+              Highest rated
+            </Link>
+          </div>
+        </div>
+      )}
+
+      <ProfileGrid entries={sortedGrid} />
 
       <Link href="/ratings" className="text-[13px] text-text-muted">
         View all ratings →

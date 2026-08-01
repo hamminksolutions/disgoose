@@ -1,13 +1,11 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import type { GridEntry } from "@/lib/ratings/getProfileGrid";
+import { formatScore } from "@/lib/ratings/formatScore";
 import { RatingModal } from "./RatingModal";
 import { PublicRatingModal } from "./PublicRatingModal";
-
-function formatScore(score: number) {
-  return (score / 10).toFixed(1);
-}
 
 /** `readOnly` renders the public, non-owner view — no edit/delete affordances in the popup. */
 export function ProfileGrid({
@@ -22,6 +20,9 @@ export function ProfileGrid({
   if (entries.length === 0) {
     return (
       <div className="flex w-full max-w-2xl flex-col items-center gap-[8px] rounded-xl border border-dashed border-border bg-surface py-[28px] text-center">
+        <div className="relative mb-[10px] h-[52px] w-[52px] rounded-full bg-accent">
+          <div className="absolute left-[16px] top-[8px] h-[20px] w-[20px] rounded-full bg-canvas" />
+        </div>
         <p className="font-heading text-[16px] font-semibold text-text-primary">
           {readOnly ? "This grid is empty — for now" : "Your grid is empty — for now"}
         </p>
@@ -30,6 +31,14 @@ export function ProfileGrid({
             ? "No albums rated yet."
             : "Rate your first album and it'll show up here."}
         </p>
+        {!readOnly && (
+          <Link
+            href="/rate"
+            className="mt-[10px] rounded-full bg-accent px-[22px] py-[12px] text-[14px] font-bold text-canvas"
+          >
+            Add your first album
+          </Link>
+        )}
       </div>
     );
   }
