@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import type { GridEntry } from "@/lib/ratings/getProfileGrid";
 import { formatScore } from "@/lib/ratings/formatScore";
+import { ListenMethodIcon } from "./ListenMethod";
 import { RatingModal } from "./RatingModal";
 import { PublicRatingModal } from "./PublicRatingModal";
 
@@ -66,6 +67,9 @@ export function ProfileGrid({
                 {entry.title}
               </div>
             )}
+            <span className="absolute left-[6px] top-[6px] flex items-center justify-center rounded-full bg-canvas/70 p-[2px]">
+              <ListenMethodIcon listenMethod={entry.listenMethod} size={12} />
+            </span>
             <span className="absolute bottom-[6px] right-[6px] rounded-full bg-accent px-[7px] py-[2px] text-[12px] font-semibold text-canvas">
               {formatScore(entry.score)}
             </span>

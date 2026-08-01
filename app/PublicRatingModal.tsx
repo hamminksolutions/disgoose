@@ -1,12 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import type { ListenMethod } from "@/lib/ratings/upsertRating";
 import { RatingCardContent } from "./RatingCardContent";
 import { useEscapeToClose } from "./useEscapeToClose";
 
 type RatingDetail = {
   score: number;
-  listenMethod: string;
+  listenMethod: ListenMethod;
   reviewText: string | null;
   album: { title: string; artist: string; coverUrl: string | null };
 };

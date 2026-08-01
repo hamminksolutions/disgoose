@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { GridEntry } from "./getProfileGrid";
+import type { ListenMethod } from "./upsertRating";
 
 export type SortBy = "newest" | "highest_rated";
 
@@ -19,6 +20,7 @@ export type PaginatedRatings = {
 type RatingRow = {
   id: string;
   score: number;
+  listen_method: ListenMethod;
   albums: {
     mb_release_group_id: string;
     title: string;
@@ -38,7 +40,7 @@ export async function getAllRatings(
   let query = supabase
     .from("ratings")
     .select(
-      "id, score, albums ( mb_release_group_id, title, artist, cover_url )",
+      "id, score, listen_method, albums ( mb_release_group_id, title, artist, cover_url )",
       { count: "exact" }
     )
     .eq("user_id", userId);
@@ -57,6 +59,7 @@ export async function getAllRatings(
   const items = (data as unknown as RatingRow[]).map((row) => ({
     ratingId: row.id,
     score: row.score,
+    listenMethod: row.listen_method,
     mbReleaseGroupId: row.albums.mb_release_group_id,
     title: row.albums.title,
     artist: row.albums.artist,

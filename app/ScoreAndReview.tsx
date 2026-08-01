@@ -1,3 +1,6 @@
+import type { ListenMethod } from "@/lib/ratings/upsertRating";
+import { ListenMethodBadge } from "./ListenMethod";
+
 /** The read-only score badge + listen method + review paragraph, shown in RatingModal's non-editing state. */
 export function ScoreAndReview({
   score,
@@ -5,7 +8,7 @@ export function ScoreAndReview({
   reviewText,
 }: {
   score: number;
-  listenMethod: string;
+  listenMethod: ListenMethod;
   reviewText: string | null;
 }) {
   return (
@@ -14,7 +17,7 @@ export function ScoreAndReview({
         <span className="rounded-full bg-accent px-[10px] py-[3px] text-[14px] font-semibold text-canvas">
           {(score / 10).toFixed(1)}
         </span>
-        <span className="text-[13px] text-text-secondary">{listenMethod}</span>
+        <ListenMethodBadge listenMethod={listenMethod} />
       </div>
 
       {reviewText && (

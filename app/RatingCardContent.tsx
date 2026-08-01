@@ -1,10 +1,11 @@
+import type { ListenMethod } from "@/lib/ratings/upsertRating";
 import { AlbumHeader } from "./AlbumHeader";
 import { ScoreAndReview } from "./ScoreAndReview";
 
 type RatingCardContentProps = {
   album: { title: string; artist: string; coverUrl: string | null };
   score: number;
-  listenMethod: string;
+  listenMethod: ListenMethod;
   reviewText: string | null;
 };
 

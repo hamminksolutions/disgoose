@@ -1,8 +1,10 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import type { ListenMethod } from "./upsertRating";
 
 export type GridEntry = {
   ratingId: string;
   score: number;
+  listenMethod: ListenMethod;
   mbReleaseGroupId: string;
   title: string;
   artist: string;
@@ -12,6 +14,7 @@ export type GridEntry = {
 type RatingRow = {
   id: string;
   score: number;
+  listen_method: ListenMethod;
   albums: {
     mb_release_group_id: string;
     title: string;
@@ -27,7 +30,7 @@ export async function getProfileGrid(
   const { data, error } = await supabase
     .from("ratings")
     .select(
-      "id, score, albums ( mb_release_group_id, title, artist, cover_url )"
+      "id, score, listen_method, albums ( mb_release_group_id, title, artist, cover_url )"
     )
     .eq("user_id", userId)
     .order("created_at", { ascending: false })
@@ -40,6 +43,7 @@ export async function getProfileGrid(
   return (data as unknown as RatingRow[]).map((row) => ({
     ratingId: row.id,
     score: row.score,
+    listenMethod: row.listen_method,
     mbReleaseGroupId: row.albums.mb_release_group_id,
     title: row.albums.title,
     artist: row.albums.artist,

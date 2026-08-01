@@ -2,25 +2,19 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import type { ListenMethod } from "@/lib/ratings/upsertRating";
 import { AlbumHeader } from "./AlbumHeader";
+import { LISTEN_METHODS } from "./ListenMethod";
 import { ScoreAndReview } from "./ScoreAndReview";
 import { useEscapeToClose } from "./useEscapeToClose";
 
 type RatingDetail = {
   id: string;
   score: number;
-  listenMethod: string;
+  listenMethod: ListenMethod;
   reviewText: string | null;
   album: { title: string; artist: string; coverUrl: string | null };
 };
-
-const LISTEN_METHODS: { value: string; label: string }[] = [
-  { value: "spotify", label: "Spotify" },
-  { value: "cd", label: "CD" },
-  { value: "vinyl", label: "Vinyl" },
-  { value: "streaming_other", label: "Other streaming" },
-  { value: "other", label: "Other" },
-];
 
 const REVIEW_MAX_LENGTH = 2000;
 
@@ -33,7 +27,7 @@ export function RatingModal({ ratingId, onClose }: { ratingId: string; onClose: 
   const [detail, setDetail] = useState<RatingDetail | null>(null);
   const [editing, setEditing] = useState(false);
   const [score, setScore] = useState(5);
-  const [listenMethod, setListenMethod] = useState("spotify");
+  const [listenMethod, setListenMethod] = useState<ListenMethod>("spotify");
   const [reviewText, setReviewText] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
