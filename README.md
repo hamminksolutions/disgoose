@@ -25,7 +25,7 @@ This project uses [`next/font`](https://nextjs.org/docs/app/building-your-applic
 Three Supabase projects, all EU region with "Automatically expose new tables" disabled:
 
 - **Local** — via `npx supabase start` (see `supabase/config.toml`). Copy `.env.example` to `.env.local` and fill in the values from `npx supabase status`.
-- **Staging** — `<project ref: TBD, see issue #36>`. Separate from production, for trying schema migrations against non-production data before they touch real users. Connect via the same `.env.example` keys, pointed at this project's URL/keys (never commit them — set as Vercel Preview env vars or in a local `.env.staging`, gitignored like `.env.local`).
+- **Staging** — `https://oouwnedzosgwptcczgls.supabase.co`. Separate from production, for trying schema migrations against non-production data before they touch real users. Connect via the same `.env.example` keys, pointed at this project's URL/keys (never commit them — set as Vercel Preview env vars or in a local `.env.staging`, gitignored like `.env.local`).
 - **Production** — Supabase project `albumcollectie`, linked to this GitHub repo (see issue #16). Configured as Vercel Production env vars.
 
 No connection secrets (service role / anon keys) are ever committed — only project identifiers, which aren't sensitive.
