@@ -8,7 +8,6 @@ import { getPendingRequests } from "@/lib/friendships/getPendingRequests";
 import { ProfileGrid } from "./ProfileGrid";
 import { ProfileHeader } from "./ProfileHeader";
 import { logoutAction } from "./logout/actions";
-import { DeleteAccountButton } from "./DeleteAccountButton";
 import { FriendRequestsBell } from "./FriendRequestsBell";
 import { TopNav } from "./TopNav";
 
@@ -76,14 +75,11 @@ export default async function HomePage({
           <p className="font-heading text-[18px] font-semibold text-text-primary">
             {profile?.username ?? user.email}
           </p>
-          <div className="flex items-center gap-[14px]">
-            <form action={logoutAction}>
-              <button className="text-[13px] text-text-muted" type="submit">
-                Log out
-              </button>
-            </form>
-            <DeleteAccountButton />
-          </div>
+          <form action={logoutAction}>
+            <button className="text-[13px] text-text-muted" type="submit">
+              Log out
+            </button>
+          </form>
         </div>
 
         {profile?.username && (
