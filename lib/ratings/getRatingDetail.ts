@@ -7,6 +7,7 @@ export type RatingDetail = {
   score: number;
   listenMethod: ListenMethod;
   reviewText: string | null;
+  owned: boolean;
   album: {
     mbReleaseGroupId: string;
     title: string;
@@ -21,6 +22,7 @@ type RatingRow = {
   score: number;
   listen_method: ListenMethod;
   review_text: string | null;
+  owned: boolean;
   albums: {
     mb_release_group_id: string;
     title: string;
@@ -42,7 +44,7 @@ export async function getRatingDetail(
   const { data } = await supabase
     .from("ratings")
     .select(
-      "id, user_id, score, listen_method, review_text, albums ( mb_release_group_id, title, artist, cover_url )"
+      "id, user_id, score, listen_method, review_text, owned, albums ( mb_release_group_id, title, artist, cover_url )"
     )
     .eq("id", ratingId)
     .maybeSingle();
@@ -61,6 +63,7 @@ export async function getRatingDetail(
     score: row.score,
     listenMethod: row.listen_method,
     reviewText: canSeeReview ? row.review_text : null,
+    owned: row.owned,
     album: {
       mbReleaseGroupId: row.albums.mb_release_group_id,
       title: row.albums.title,

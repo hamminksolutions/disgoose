@@ -5,6 +5,7 @@ export type GridEntry = {
   ratingId: string;
   score: number;
   listenMethod: ListenMethod;
+  owned: boolean;
   mbReleaseGroupId: string;
   title: string;
   artist: string;
@@ -15,6 +16,7 @@ type RatingRow = {
   id: string;
   score: number;
   listen_method: ListenMethod;
+  owned: boolean;
   albums: {
     mb_release_group_id: string;
     title: string;
@@ -30,7 +32,7 @@ export async function getProfileGrid(
   const { data, error } = await supabase
     .from("ratings")
     .select(
-      "id, score, listen_method, albums ( mb_release_group_id, title, artist, cover_url )"
+      "id, score, listen_method, owned, albums ( mb_release_group_id, title, artist, cover_url )"
     )
     .eq("user_id", userId)
     .order("created_at", { ascending: false })
@@ -44,6 +46,7 @@ export async function getProfileGrid(
     ratingId: row.id,
     score: row.score,
     listenMethod: row.listen_method,
+    owned: row.owned,
     mbReleaseGroupId: row.albums.mb_release_group_id,
     title: row.albums.title,
     artist: row.albums.artist,

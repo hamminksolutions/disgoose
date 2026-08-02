@@ -5,6 +5,7 @@ import Link from "next/link";
 import type { GridEntry } from "@/lib/ratings/getProfileGrid";
 import { formatScore } from "@/lib/ratings/formatScore";
 import { ListenMethodIcon } from "./ListenMethod";
+import { OwnedRing } from "./Owned";
 import { RatingModal } from "./RatingModal";
 import { PublicRatingModal } from "./PublicRatingModal";
 
@@ -73,6 +74,7 @@ export function ProfileGrid({
             <span className="absolute bottom-[6px] right-[6px] rounded-full bg-accent px-[7px] py-[2px] text-[12px] font-semibold text-canvas">
               {formatScore(entry.score)}
             </span>
+            {entry.owned && <OwnedRing />}
           </button>
         ))}
       </div>

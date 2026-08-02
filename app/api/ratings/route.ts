@@ -20,11 +20,12 @@ export async function POST(request: NextRequest) {
   }
 
   const body = await request.json();
-  const { mbReleaseGroupId, score, listenMethod, reviewText } = body as {
+  const { mbReleaseGroupId, score, listenMethod, reviewText, owned } = body as {
     mbReleaseGroupId: string;
     score: number;
     listenMethod: ListenMethod;
     reviewText?: string | null;
+    owned?: boolean;
   };
 
   // Search (ticket #3) already caches every result into `albums`, so the
@@ -41,7 +42,7 @@ export async function POST(request: NextRequest) {
 
   try {
     const rating = await upsertRating(
-      { userId: user.id, albumId: album.id, score, listenMethod, reviewText },
+      { userId: user.id, albumId: album.id, score, listenMethod, reviewText, owned },
       { supabase: admin }
     );
     return NextResponse.json({ rating });

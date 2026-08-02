@@ -2,9 +2,10 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import type { ListenMethod } from "@/lib/ratings/upsertRating";
+import { isPhysicalListenMethod, type ListenMethod } from "@/lib/ratings/upsertRating";
 import { AlbumHeader } from "./AlbumHeader";
 import { LISTEN_METHODS } from "./ListenMethod";
+import { OwnedCheckbox } from "./Owned";
 import { ScoreAndReview } from "./ScoreAndReview";
 import { useEscapeToClose } from "./useEscapeToClose";
 
@@ -12,6 +13,7 @@ type RatingDetail = {
   id: string;
   score: number;
   listenMethod: ListenMethod;
+  owned: boolean;
   reviewText: string | null;
   album: { title: string; artist: string; coverUrl: string | null };
 };
@@ -28,6 +30,7 @@ export function RatingModal({ ratingId, onClose }: { ratingId: string; onClose: 
   const [editing, setEditing] = useState(false);
   const [score, setScore] = useState(5);
   const [listenMethod, setListenMethod] = useState<ListenMethod>("spotify");
+  const [owned, setOwned] = useState(false);
   const [reviewText, setReviewText] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -41,6 +44,7 @@ export function RatingModal({ ratingId, onClose }: { ratingId: string; onClose: 
         setDetail(d);
         setScore(d.score / 10);
         setListenMethod(d.listenMethod);
+        setOwned(d.owned);
         setReviewText(d.reviewText ?? "");
       });
   }, [ratingId]);
@@ -54,6 +58,7 @@ export function RatingModal({ ratingId, onClose }: { ratingId: string; onClose: 
       body: JSON.stringify({
         score: Math.round(score * 10),
         listenMethod,
+        owned,
         reviewText: reviewText.length > 0 ? reviewText : null,
       }),
     });
@@ -100,6 +105,7 @@ export function RatingModal({ ratingId, onClose }: { ratingId: string; onClose: 
                 <ScoreAndReview
                   score={detail.score}
                   listenMethod={detail.listenMethod}
+                  owned={detail.owned}
                   reviewText={detail.reviewText}
                 />
                 <div className="flex gap-[8px]">
@@ -164,7 +170,10 @@ export function RatingModal({ ratingId, onClose }: { ratingId: string; onClose: 
                       <button
                         key={method.value}
                         type="button"
-                        onClick={() => setListenMethod(method.value)}
+                        onClick={() => {
+                          setListenMethod(method.value);
+                          if (!isPhysicalListenMethod(method.value)) setOwned(false);
+                        }}
                         className={`rounded-full border px-[14px] py-[7px] text-[13px] ${
                           listenMethod === method.value
                             ? "border-accent bg-accent text-canvas"
@@ -176,6 +185,10 @@ export function RatingModal({ ratingId, onClose }: { ratingId: string; onClose: 
                     ))}
                   </div>
                 </div>
+
+                {isPhysicalListenMethod(listenMethod) && (
+                  <OwnedCheckbox checked={owned} onChange={setOwned} />
+                )}
 
                 <label className="flex flex-col gap-[6px] text-[13px] text-text-secondary">
                   Review

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import type { GridEntry } from "@/lib/ratings/getProfileGrid";
 import { ListenMethodBadge } from "../ListenMethod";
+import { OwnedBadge } from "../Owned";
 import { RatingModal } from "../RatingModal";
 
 function formatScore(score: number) {
@@ -37,6 +38,7 @@ export function RatingsList({ items }: { items: GridEntry[] }) {
                 <p className="truncate text-[12.5px] text-text-secondary">{entry.artist}</p>
               </div>
               <ListenMethodBadge listenMethod={entry.listenMethod} />
+              {entry.owned && <OwnedBadge />}
               <span className="shrink-0 rounded-full bg-accent px-[8px] py-[3px] text-[12.5px] font-semibold text-canvas">
                 {formatScore(entry.score)}
               </span>

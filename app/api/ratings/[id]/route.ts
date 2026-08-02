@@ -52,6 +52,7 @@ export async function PUT(
     score?: number;
     listenMethod?: ListenMethod;
     reviewText?: string | null;
+    owned?: boolean;
   };
 
   try {

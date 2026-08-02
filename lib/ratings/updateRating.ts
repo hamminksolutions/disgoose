@@ -1,16 +1,17 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import type { ListenMethod, Rating } from "./upsertRating";
+import { isPhysicalListenMethod, type ListenMethod, type Rating } from "./upsertRating";
 
 export type UpdateRatingInput = {
   score?: number;
   listenMethod?: ListenMethod;
   reviewText?: string | null;
+  owned?: boolean;
 };
 
 export async function updateRating(
   ratingId: string,
   userId: string,
-  { score, listenMethod, reviewText }: UpdateRatingInput,
+  { score, listenMethod, reviewText, owned }: UpdateRatingInput,
   { supabase }: { supabase: SupabaseClient }
 ): Promise<Rating> {
   if (score !== undefined && (score < 10 || score > 100)) {
@@ -24,6 +25,12 @@ export async function updateRating(
   if (score !== undefined) patch.score = score;
   if (listenMethod !== undefined) patch.listen_method = listenMethod;
   if (reviewText !== undefined) patch.review_text = reviewText;
+  if (owned !== undefined) {
+    // Only pre-drop owned when this same call also changes listenMethod —
+    // otherwise we can't know the row's current method, so let the DB check
+    // constraint (ratings_owned_requires_physical) be the source of truth.
+    patch.owned = listenMethod !== undefined ? owned && isPhysicalListenMethod(listenMethod) : owned;
+  }
 
   const { data, error } = await supabase
     .from("ratings")
@@ -47,5 +54,6 @@ export async function updateRating(
     score: data.score,
     listenMethod: data.listen_method,
     reviewText: data.review_text,
+    owned: data.owned,
   };
 }

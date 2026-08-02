@@ -21,6 +21,7 @@ type RatingRow = {
   id: string;
   score: number;
   listen_method: ListenMethod;
+  owned: boolean;
   albums: {
     mb_release_group_id: string;
     title: string;
@@ -40,7 +41,7 @@ export async function getAllRatings(
   let query = supabase
     .from("ratings")
     .select(
-      "id, score, listen_method, albums ( mb_release_group_id, title, artist, cover_url )",
+      "id, score, listen_method, owned, albums ( mb_release_group_id, title, artist, cover_url )",
       { count: "exact" }
     )
     .eq("user_id", userId);
@@ -60,6 +61,7 @@ export async function getAllRatings(
     ratingId: row.id,
     score: row.score,
     listenMethod: row.listen_method,
+    owned: row.owned,
     mbReleaseGroupId: row.albums.mb_release_group_id,
     title: row.albums.title,
     artist: row.albums.artist,

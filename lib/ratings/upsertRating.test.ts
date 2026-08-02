@@ -91,4 +91,30 @@ describe("upsertRating", () => {
       upsertRating({ userId, albumId, score: 105, listenMethod: "cd" }, { supabase })
     ).rejects.toThrow(/1\.0.*10\.0/);
   });
+
+  it("saves owned for a physical listen method", async () => {
+    const supabase = createTestSupabaseClient();
+    const userId = await createTestUser(supabase);
+    const albumId = await createTestAlbum(supabase);
+
+    const rating = await upsertRating(
+      { userId, albumId, score: 85, listenMethod: "vinyl", owned: true },
+      { supabase }
+    );
+
+    expect(rating.owned).toBe(true);
+  });
+
+  it("drops owned instead of saving it for a non-physical listen method", async () => {
+    const supabase = createTestSupabaseClient();
+    const userId = await createTestUser(supabase);
+    const albumId = await createTestAlbum(supabase);
+
+    const rating = await upsertRating(
+      { userId, albumId, score: 85, listenMethod: "spotify", owned: true },
+      { supabase }
+    );
+
+    expect(rating.owned).toBe(false);
+  });
 });

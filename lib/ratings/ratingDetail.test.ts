@@ -136,6 +136,44 @@ describe("updateRating", () => {
       updateRating(rating.id, other.userId, { score: 10 }, { supabase })
     ).rejects.toThrow();
   });
+
+  it("updates owned alongside a physical listen method", async () => {
+    const supabase = createTestSupabaseClient();
+    const owner = await createTestUser();
+    const albumId = await createTestAlbum(supabase);
+    const rating = await upsertRating(
+      { userId: owner.userId, albumId, score: 60, listenMethod: "cd" },
+      { supabase }
+    );
+
+    const updated = await updateRating(
+      rating.id,
+      owner.userId,
+      { listenMethod: "vinyl", owned: true },
+      { supabase }
+    );
+
+    expect(updated.owned).toBe(true);
+  });
+
+  it("drops owned instead of saving it when switching to a non-physical listen method", async () => {
+    const supabase = createTestSupabaseClient();
+    const owner = await createTestUser();
+    const albumId = await createTestAlbum(supabase);
+    const rating = await upsertRating(
+      { userId: owner.userId, albumId, score: 60, listenMethod: "vinyl", owned: true },
+      { supabase }
+    );
+
+    const updated = await updateRating(
+      rating.id,
+      owner.userId,
+      { listenMethod: "spotify", owned: true },
+      { supabase }
+    );
+
+    expect(updated.owned).toBe(false);
+  });
 });
 
 describe("deleteRating", () => {

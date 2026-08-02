@@ -8,6 +8,7 @@ import { useEscapeToClose } from "./useEscapeToClose";
 type RatingDetail = {
   score: number;
   listenMethod: ListenMethod;
+  owned: boolean;
   reviewText: string | null;
   album: { title: string; artist: string; coverUrl: string | null };
 };
@@ -38,6 +39,7 @@ export function PublicRatingModal({ ratingId, onClose }: { ratingId: string; onC
             album={detail.album}
             score={detail.score}
             listenMethod={detail.listenMethod}
+            owned={detail.owned}
             reviewText={detail.reviewText}
           />
         )}

@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { isPhysicalListenMethod, type ListenMethod } from "@/lib/ratings/upsertRating";
+import { OwnedCheckbox } from "../Owned";
 
 type Album = {
   mbReleaseGroupId: string;
@@ -10,7 +12,7 @@ type Album = {
   coverUrl: string | null;
 };
 
-const LISTEN_METHODS: { value: string; label: string }[] = [
+const LISTEN_METHODS: { value: ListenMethod; label: string }[] = [
   { value: "spotify", label: "Spotify" },
   { value: "cd", label: "CD" },
   { value: "vinyl", label: "Vinyl" },
@@ -34,7 +36,8 @@ export function RateForm() {
 
   const [selectedAlbum, setSelectedAlbum] = useState<Album | null>(null);
   const [score, setScore] = useState(5);
-  const [listenMethod, setListenMethod] = useState("spotify");
+  const [listenMethod, setListenMethod] = useState<ListenMethod>("spotify");
+  const [owned, setOwned] = useState(false);
   const [reviewText, setReviewText] = useState("");
   const [saveError, setSaveError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -71,6 +74,7 @@ export function RateForm() {
           mbReleaseGroupId: selectedAlbum.mbReleaseGroupId,
           score: Math.round(score * 10),
           listenMethod,
+          owned,
           reviewText: reviewText.length > 0 ? reviewText : null,
         }),
       });
@@ -160,7 +164,10 @@ export function RateForm() {
               <button
                 key={method.value}
                 type="button"
-                onClick={() => setListenMethod(method.value)}
+                onClick={() => {
+                  setListenMethod(method.value);
+                  if (!isPhysicalListenMethod(method.value)) setOwned(false);
+                }}
                 className={`rounded-full border px-[14px] py-[7px] text-[13px] ${
                   listenMethod === method.value
                     ? "border-accent bg-accent text-canvas"
@@ -172,6 +179,8 @@ export function RateForm() {
             ))}
           </div>
         </div>
+
+        {isPhysicalListenMethod(listenMethod) && <OwnedCheckbox checked={owned} onChange={setOwned} />}
 
         <label className="flex flex-col gap-[6px] text-[13px] text-text-secondary">
           Review (optional)
