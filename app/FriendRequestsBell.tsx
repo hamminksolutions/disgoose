@@ -28,7 +28,7 @@ export function FriendRequestsBell({ initialRequests }: { initialRequests: Pendi
   }
 
   return (
-    <div className="fixed right-[16px] top-[16px] z-40">
+    <div className="fixed right-[16px] top-[93px] z-40">
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}

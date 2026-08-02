@@ -4,6 +4,7 @@ import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
 import { getAllRatings, type SortBy } from "@/lib/ratings/getAllRatings";
 import { RatingsList } from "./RatingsList";
+import { TopNav } from "../TopNav";
 
 const PAGE_SIZE = 20;
 
@@ -32,14 +33,13 @@ export default async function RatingsPage({
   const totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE));
 
   return (
-    <main className="flex flex-1 justify-center p-[16px]">
+    <>
+      <TopNav active="ratings" />
+      <main className="flex flex-1 justify-center p-[16px]">
       <div className="w-full max-w-2xl py-[28px]">
-        <div className="mb-[16px] flex items-center justify-between">
-          <h1 className="font-heading text-[22px] font-bold text-text-primary">All ratings</h1>
-          <Link href="/" className="text-[13px] text-accent">
-            ← Back to grid
-          </Link>
-        </div>
+        <h1 className="mb-[16px] font-heading text-[22px] font-bold text-text-primary">
+          All ratings
+        </h1>
 
         <div className="mb-[14px] flex gap-[8px]">
           <Link
@@ -86,6 +86,7 @@ export default async function RatingsPage({
           )}
         </div>
       </div>
-    </main>
+      </main>
+    </>
   );
 }

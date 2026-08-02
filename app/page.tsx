@@ -13,6 +13,7 @@ import { DeleteAccountButton } from "./DeleteAccountButton";
 import { FriendRequestsBell } from "./FriendRequestsBell";
 import { AddFriendForm } from "./AddFriendForm";
 import { FriendsList } from "./FriendsList";
+import { TopNav } from "./TopNav";
 
 export default async function HomePage({
   searchParams,
@@ -70,65 +71,61 @@ export default async function HomePage({
     : null;
 
   return (
-    <main className="flex flex-1 flex-col items-center gap-[18px] p-[28px]">
-      <FriendRequestsBell initialRequests={pendingRequests} />
+    <>
+      <TopNav active="profile" />
+      <main className="flex flex-1 flex-col items-center gap-[18px] p-[28px]">
+        <FriendRequestsBell initialRequests={pendingRequests} />
 
-      <div className="flex w-full max-w-2xl items-center justify-between">
-        <p className="font-heading text-[18px] font-semibold text-text-primary">
-          {profile?.username ?? user.email}
-        </p>
-        <div className="flex items-center gap-[14px]">
-          <Link href="/rate" className="text-[13px] text-accent">
-            Add a rating
-          </Link>
-          <form action={logoutAction}>
-            <button className="text-[13px] text-text-muted" type="submit">
-              Log out
-            </button>
-          </form>
-          <DeleteAccountButton />
-        </div>
-      </div>
-
-      <div className="w-full max-w-2xl">
-        <AddFriendForm />
-      </div>
-
-      <FriendsList initialFriends={friends} />
-
-      {profile?.username && (
-        <ProfileHeader username={profile.username} collectingSince={collectingSince} stats={stats} />
-      )}
-
-      {sortedGrid.length > 0 && (
         <div className="flex w-full max-w-2xl items-center justify-between">
-          <p className="font-heading text-[16px] font-bold text-text-secondary">Grid</p>
-          <div className="flex gap-[6px] rounded-full border border-border bg-surface p-[6px]">
-            <Link
-              href="/?sortBy=newest"
-              className={`rounded-full px-[14px] py-[7px] text-[13px] font-semibold ${
-                sortBy === "newest" ? "bg-accent text-canvas" : "text-text-secondary"
-              }`}
-            >
-              New
-            </Link>
-            <Link
-              href="/?sortBy=highest_rated"
-              className={`rounded-full px-[14px] py-[7px] text-[13px] font-semibold ${
-                sortBy === "highest_rated" ? "bg-accent text-canvas" : "text-text-secondary"
-              }`}
-            >
-              Highest rated
-            </Link>
+          <p className="font-heading text-[18px] font-semibold text-text-primary">
+            {profile?.username ?? user.email}
+          </p>
+          <div className="flex items-center gap-[14px]">
+            <form action={logoutAction}>
+              <button className="text-[13px] text-text-muted" type="submit">
+                Log out
+              </button>
+            </form>
+            <DeleteAccountButton />
           </div>
         </div>
-      )}
 
-      <ProfileGrid entries={sortedGrid} />
+        <div className="w-full max-w-2xl">
+          <AddFriendForm />
+        </div>
 
-      <Link href="/ratings" className="text-[13px] text-text-muted">
-        View all ratings →
-      </Link>
-    </main>
+        <FriendsList initialFriends={friends} />
+
+        {profile?.username && (
+          <ProfileHeader username={profile.username} collectingSince={collectingSince} stats={stats} />
+        )}
+
+        {sortedGrid.length > 0 && (
+          <div className="flex w-full max-w-2xl items-center justify-between">
+            <p className="font-heading text-[16px] font-bold text-text-secondary">Grid</p>
+            <div className="flex gap-[6px] rounded-full border border-border bg-surface p-[6px]">
+              <Link
+                href="/?sortBy=newest"
+                className={`rounded-full px-[14px] py-[7px] text-[13px] font-semibold ${
+                  sortBy === "newest" ? "bg-accent text-canvas" : "text-text-secondary"
+                }`}
+              >
+                New
+              </Link>
+              <Link
+                href="/?sortBy=highest_rated"
+                className={`rounded-full px-[14px] py-[7px] text-[13px] font-semibold ${
+                  sortBy === "highest_rated" ? "bg-accent text-canvas" : "text-text-secondary"
+                }`}
+              >
+                Highest rated
+              </Link>
+            </div>
+          </div>
+        )}
+
+        <ProfileGrid entries={sortedGrid} />
+      </main>
+    </>
   );
 }
