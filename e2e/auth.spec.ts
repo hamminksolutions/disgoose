@@ -7,7 +7,9 @@ test("a new user can register, confirm their email, and log in", async ({ page }
   await registerAndConfirm(page, user);
   await login(page, user);
 
-  await expect(page.getByText(user.username)).toBeVisible();
+  // exact: true — issue #40 added a "@handle · collecting since ..." line to
+  // ProfileHeader, which also contains (but isn't equal to) the username.
+  await expect(page.getByText(user.username, { exact: true })).toBeVisible();
 });
 
 test("logging in before confirming the email fails", async ({ page }) => {

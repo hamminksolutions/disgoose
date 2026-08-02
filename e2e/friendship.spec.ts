@@ -36,8 +36,9 @@ test("a stranger can't see a review, but an accepted friend can", async ({ brows
   await expect(friendSession.page.getByText(REVIEW_TEXT)).not.toBeVisible();
   await friendSession.page.keyboard.press("Escape");
 
-  // Friend sends a request from their own home page; owner accepts it from theirs.
-  await friendSession.page.goto("/");
+  // Friend sends a request from the Social page (issue #45 moved the add-friend
+  // form there from the home page); owner accepts it from their own home page.
+  await friendSession.page.goto("/social");
   await friendSession.page.getByPlaceholder("Add a friend by username").fill(owner.username);
   await friendSession.page.getByRole("button", { name: "Send request" }).click();
   await expect(friendSession.page.getByText("Sent!")).toBeVisible();

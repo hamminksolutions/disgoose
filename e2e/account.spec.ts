@@ -8,6 +8,8 @@ test("a logged-in user can delete their account from the app, then can't log bac
   await registerAndConfirm(page, user);
   await login(page, user);
 
+  // Delete Account moved off the home page onto /settings (issue #46).
+  await page.goto("/settings");
   await page.getByRole("button", { name: "Delete account" }).click();
   await page.getByText("This permanently deletes your account").waitFor();
   await page.getByRole("button", { name: "Yes, delete my account" }).click();

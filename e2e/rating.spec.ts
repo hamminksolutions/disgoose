@@ -11,5 +11,9 @@ test("a user can add an album and see it in their profile grid", async ({ page }
   await page.getByRole("button", { name: "Save rating" }).click();
   await page.waitForURL("/");
 
-  await expect(page.getByText("5.0")).toBeVisible();
+  // Scoped to the grid cell — issue #40 added an "avg. rating" stat that
+  // also reads "5.0" for a single rating, so a bare getByText is ambiguous.
+  await expect(
+    page.getByRole("button", { name: /^View rating for/ }).getByText("5.0")
+  ).toBeVisible();
 });
