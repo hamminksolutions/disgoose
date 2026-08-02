@@ -33,7 +33,7 @@ describe("updateAvatarUrl", () => {
       { email: `${randomUUID()}@example.test`, password: "correct-horse-battery-staple", username },
       { supabase: createTestSupabaseClient(), supabaseAdmin: supabase }
     );
-    const url = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/avatars/${userId}/avatar.jpg`;
+    const url = `https://example.test/storage/v1/object/public/avatars/${userId}/avatar.jpg`;
 
     await updateAvatarUrl(userId, url, { supabase });
 
@@ -48,7 +48,7 @@ describe("updateAvatarUrl", () => {
       { email: `${randomUUID()}@example.test`, password: "correct-horse-battery-staple", username },
       { supabase: createTestSupabaseClient(), supabaseAdmin: supabase }
     );
-    const url = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/avatars/${randomUUID()}/avatar.jpg`;
+    const url = `https://example.test/storage/v1/object/public/avatars/${randomUUID()}/avatar.jpg`;
 
     await expect(updateAvatarUrl(userId, url, { supabase })).rejects.toThrow(
       /does not belong to this user/
