@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import type { Friend } from "@/lib/friendships/getFriends";
 
@@ -30,7 +31,9 @@ export function FriendsList({ initialFriends }: { initialFriends: Friend[] }) {
             key={f.friendshipId}
             className="flex items-center gap-[8px] rounded-full bg-surface px-[10px] py-[6px]"
           >
-            <span className="text-[13px] text-text-primary">{f.username}</span>
+            <Link href={`/profile/${f.username}`} className="text-[13px] text-text-primary">
+              {f.username}
+            </Link>
             <button
               type="button"
               disabled={busyId === f.friendshipId}

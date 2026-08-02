@@ -5,14 +5,11 @@ import { getProfileGrid } from "@/lib/ratings/getProfileGrid";
 import { getRatingStats } from "@/lib/ratings/getRatingStats";
 import type { SortBy } from "@/lib/ratings/getAllRatings";
 import { getPendingRequests } from "@/lib/friendships/getPendingRequests";
-import { getFriends } from "@/lib/friendships/getFriends";
 import { ProfileGrid } from "./ProfileGrid";
 import { ProfileHeader } from "./ProfileHeader";
 import { logoutAction } from "./logout/actions";
 import { DeleteAccountButton } from "./DeleteAccountButton";
 import { FriendRequestsBell } from "./FriendRequestsBell";
-import { AddFriendForm } from "./AddFriendForm";
-import { FriendsList } from "./FriendsList";
 import { TopNav } from "./TopNav";
 
 export default async function HomePage({
@@ -53,12 +50,11 @@ export default async function HomePage({
   }
 
   const admin = createAdminSupabaseClient();
-  const [{ data: profile }, grid, stats, pendingRequests, friends] = await Promise.all([
+  const [{ data: profile }, grid, stats, pendingRequests] = await Promise.all([
     admin.from("users").select("username, created_at").eq("id", user.id).single(),
     getProfileGrid(user.id, { supabase: admin }),
     getRatingStats(user.id, { supabase: admin }),
     getPendingRequests(user.id, { supabase: admin }),
-    getFriends(user.id, { supabase: admin }),
   ]);
 
   const params = await searchParams;
@@ -89,12 +85,6 @@ export default async function HomePage({
             <DeleteAccountButton />
           </div>
         </div>
-
-        <div className="w-full max-w-2xl">
-          <AddFriendForm />
-        </div>
-
-        <FriendsList initialFriends={friends} />
 
         {profile?.username && (
           <ProfileHeader username={profile.username} collectingSince={collectingSince} stats={stats} />
