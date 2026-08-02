@@ -50,7 +50,7 @@ export default async function HomePage({
 
   const admin = createAdminSupabaseClient();
   const [{ data: profile }, grid, stats, pendingRequests] = await Promise.all([
-    admin.from("users").select("username, created_at").eq("id", user.id).single(),
+    admin.from("users").select("username, avatar_url, created_at").eq("id", user.id).single(),
     getProfileGrid(user.id, { supabase: admin }),
     getRatingStats(user.id, { supabase: admin }),
     getPendingRequests(user.id, { supabase: admin }),
@@ -83,7 +83,12 @@ export default async function HomePage({
         </div>
 
         {profile?.username && (
-          <ProfileHeader username={profile.username} collectingSince={collectingSince} stats={stats} />
+          <ProfileHeader
+            username={profile.username}
+            avatarUrl={profile.avatar_url}
+            collectingSince={collectingSince}
+            stats={stats}
+          />
         )}
 
         {sortedGrid.length > 0 && (
