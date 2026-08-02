@@ -21,3 +21,7 @@ _Avoid_: Follow, Following (asymmetric relationships — not used here, Friendsh
 
 **Friend Request**:
 A pending, one-directional invitation from one User to another to form a Friendship. Declining a Friend Request or ending an existing Friendship is silent — the other party receives no notification of either. A User cannot send one to themselves. Sending one to a User who already has a pending Friend Request open toward you immediately resolves both into an accepted Friendship, rather than leaving two independent pending rows.
+
+**Owned**:
+A boolean flag on a Rating recording whether the user physically owns a copy of the album. Meaningful only when the Rating's listen method is `vinyl` or `cd` — always false and not editable for `spotify`, `streaming_other`, or `other`. Set via a checkbox alongside listen method in the rate/edit flow. Visible on the Grid (ring border), the rating detail modal (pill badge), and the all-ratings list (badge).
+_Avoid_: applying Owned to non-physical listen methods; treating it as a richer format field (it's a flag on the existing Rating, not a new entity or a record of which format is owned)
