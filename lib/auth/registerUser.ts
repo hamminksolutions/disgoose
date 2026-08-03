@@ -32,6 +32,9 @@ export async function registerUser(
   const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
     email,
     password,
+    options: {
+      emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL!}/login?confirmed=true`,
+    },
   });
   if (signUpError || !signUpData.user) {
     throw signUpError ?? new Error("Sign up did not return a user");

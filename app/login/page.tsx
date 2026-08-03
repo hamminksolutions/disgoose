@@ -1,13 +1,15 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { Suspense, useActionState, useState } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { loginAction } from "./actions";
 import { ForgotPasswordModal } from "./ForgotPasswordModal";
 
-export default function LoginPage() {
+function LoginForm() {
   const [state, formAction, pending] = useActionState(loginAction, { error: null });
   const [forgotPasswordOpen, setForgotPasswordOpen] = useState(false);
+  const confirmed = useSearchParams().get("confirmed") === "true";
 
   return (
     <main className="flex flex-1 items-center justify-center p-[16px]">
@@ -16,6 +18,12 @@ export default function LoginPage() {
         className="flex w-full max-w-sm flex-col gap-[16px] rounded-xl bg-surface p-[28px]"
       >
         <h1 className="font-heading text-[22px] font-bold text-text-primary">Log in to Disgoose</h1>
+
+        {confirmed && (
+          <p className="rounded-md bg-accent/10 px-[12px] py-[10px] text-[13px] text-accent" role="status">
+            Email confirmed — log in below.
+          </p>
+        )}
 
         <label className="flex flex-col gap-[6px] text-[13px] text-text-secondary">
           Email
@@ -71,5 +79,13 @@ export default function LoginPage() {
         <ForgotPasswordModal onClose={() => setForgotPasswordOpen(false)} />
       )}
     </main>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense>
+      <LoginForm />
+    </Suspense>
   );
 }
