@@ -36,6 +36,7 @@ export function RateForm() {
 
   const [selectedAlbum, setSelectedAlbum] = useState<Album | null>(null);
   const [score, setScore] = useState(5);
+  const [scoreText, setScoreText] = useState(score.toFixed(1));
   const [listenMethod, setListenMethod] = useState<ListenMethod>("spotify");
   const [owned, setOwned] = useState(false);
   const [reviewText, setReviewText] = useState("");
@@ -128,7 +129,11 @@ export function RateForm() {
             <button
               type="button"
               aria-label="Decrease score"
-              onClick={() => setScore((s) => clampScore(s - 0.1))}
+              onClick={() => {
+                const next = clampScore(score - 0.1);
+                setScore(next);
+                setScoreText(next.toFixed(1));
+              }}
               className="h-[36px] w-[36px] rounded-md border border-border text-[16px] text-text-primary"
             >
               −
@@ -139,17 +144,23 @@ export function RateForm() {
               step={0.1}
               min={1}
               max={10}
-              value={score.toFixed(1)}
-              onBlur={(e) => {
+              value={scoreText}
+              onChange={(e) => {
+                setScoreText(e.target.value);
                 const parsed = parseFloat(e.target.value);
                 if (!Number.isNaN(parsed)) setScore(clampScore(parsed));
               }}
+              onBlur={() => setScoreText(score.toFixed(1))}
               className="w-[72px] rounded-md border border-border bg-canvas px-[10px] py-[8px] text-center text-[18px] font-bold text-text-primary"
             />
             <button
               type="button"
               aria-label="Increase score"
-              onClick={() => setScore((s) => clampScore(s + 0.1))}
+              onClick={() => {
+                const next = clampScore(score + 0.1);
+                setScore(next);
+                setScoreText(next.toFixed(1));
+              }}
               className="h-[36px] w-[36px] rounded-md border border-border text-[16px] text-text-primary"
             >
               +
