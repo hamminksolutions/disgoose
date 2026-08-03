@@ -140,7 +140,7 @@ export function RateForm() {
               min={1}
               max={10}
               value={score.toFixed(1)}
-              onChange={(e) => {
+              onBlur={(e) => {
                 const parsed = parseFloat(e.target.value);
                 if (!Number.isNaN(parsed)) setScore(clampScore(parsed));
               }}
