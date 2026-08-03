@@ -2,8 +2,8 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { isPhysicalListenMethod, type ListenMethod } from "@/lib/ratings/upsertRating";
-import { OwnedCheckbox } from "../Owned";
+import type { ListenMethod } from "@/lib/ratings/upsertRating";
+import { RatingFields } from "../RatingFields";
 
 type Album = {
   mbReleaseGroupId: string;
@@ -11,20 +11,6 @@ type Album = {
   artist: string;
   coverUrl: string | null;
 };
-
-const LISTEN_METHODS: { value: ListenMethod; label: string }[] = [
-  { value: "spotify", label: "Spotify" },
-  { value: "cd", label: "CD" },
-  { value: "vinyl", label: "Vinyl" },
-  { value: "streaming_other", label: "Other streaming" },
-  { value: "other", label: "Other" },
-];
-
-const REVIEW_MAX_LENGTH = 2000;
-
-function clampScore(value: number) {
-  return Math.min(10, Math.max(1, Math.round(value * 10) / 10));
-}
 
 export function RateForm() {
   const router = useRouter();
@@ -36,7 +22,6 @@ export function RateForm() {
 
   const [selectedAlbum, setSelectedAlbum] = useState<Album | null>(null);
   const [score, setScore] = useState(5);
-  const [scoreText, setScoreText] = useState(score.toFixed(1));
   const [listenMethod, setListenMethod] = useState<ListenMethod>("spotify");
   const [owned, setOwned] = useState(false);
   const [reviewText, setReviewText] = useState("");
@@ -123,89 +108,16 @@ export function RateForm() {
           </div>
         </div>
 
-        <div className="flex flex-col gap-[8px]">
-          <span className="text-[13px] text-text-secondary">Score</span>
-          <div className="flex items-center gap-[10px]">
-            <button
-              type="button"
-              aria-label="Decrease score"
-              onClick={() => {
-                const next = clampScore(score - 0.1);
-                setScore(next);
-                setScoreText(next.toFixed(1));
-              }}
-              className="h-[36px] w-[36px] rounded-md border border-border text-[16px] text-text-primary"
-            >
-              −
-            </button>
-            <input
-              type="number"
-              inputMode="decimal"
-              step={0.1}
-              min={1}
-              max={10}
-              value={scoreText}
-              onChange={(e) => {
-                setScoreText(e.target.value);
-                const parsed = parseFloat(e.target.value);
-                if (!Number.isNaN(parsed)) setScore(clampScore(parsed));
-              }}
-              onBlur={() => setScoreText(score.toFixed(1))}
-              className="w-[72px] rounded-md border border-border bg-canvas px-[10px] py-[8px] text-center text-[18px] font-bold text-text-primary"
-            />
-            <button
-              type="button"
-              aria-label="Increase score"
-              onClick={() => {
-                const next = clampScore(score + 0.1);
-                setScore(next);
-                setScoreText(next.toFixed(1));
-              }}
-              className="h-[36px] w-[36px] rounded-md border border-border text-[16px] text-text-primary"
-            >
-              +
-            </button>
-          </div>
-        </div>
-
-        <div className="flex flex-col gap-[8px]">
-          <span className="text-[13px] text-text-secondary">Listen method</span>
-          <div className="flex flex-wrap gap-[8px]">
-            {LISTEN_METHODS.map((method) => (
-              <button
-                key={method.value}
-                type="button"
-                onClick={() => {
-                  setListenMethod(method.value);
-                  if (!isPhysicalListenMethod(method.value)) setOwned(false);
-                }}
-                className={`rounded-full border px-[14px] py-[7px] text-[13px] ${
-                  listenMethod === method.value
-                    ? "border-accent bg-accent text-canvas"
-                    : "border-border text-text-secondary"
-                }`}
-              >
-                {method.label}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {isPhysicalListenMethod(listenMethod) && <OwnedCheckbox checked={owned} onChange={setOwned} />}
-
-        <label className="flex flex-col gap-[6px] text-[13px] text-text-secondary">
-          Review (optional)
-          <textarea
-            value={reviewText}
-            maxLength={REVIEW_MAX_LENGTH}
-            onChange={(e) => setReviewText(e.target.value)}
-            rows={5}
-            className="resize-none rounded-md border border-border bg-canvas px-[12px] py-[10px] text-[14px] text-text-primary outline-none focus:border-border-strong"
-          />
-          <span className="self-end text-[12px] text-text-muted">
-            {reviewText.length}/{REVIEW_MAX_LENGTH}
-          </span>
-        </label>
+        <RatingFields
+          score={score}
+          onScoreChange={setScore}
+          listenMethod={listenMethod}
+          onListenMethodChange={setListenMethod}
+          owned={owned}
+          onOwnedChange={setOwned}
+          reviewText={reviewText}
+          onReviewTextChange={setReviewText}
+        />
 
         {saveError && (
           <p className="text-[13px] text-accent" role="alert">

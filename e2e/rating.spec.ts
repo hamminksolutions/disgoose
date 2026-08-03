@@ -40,3 +40,30 @@ test("a user can type a score with the keyboard, including a comma decimal", asy
     page.getByRole("button", { name: /^View rating for/ }).getByText("9.2")
   ).toBeVisible();
 });
+
+test("a user can type a new score with the keyboard while editing an existing rating", async ({ page }) => {
+  const user = uniqueUser();
+  await registerAndConfirm(page, user);
+  await login(page, user);
+
+  await searchAndSelectFirstAlbum(page, "Radiohead");
+  await page.getByRole("button", { name: "Save rating" }).click();
+  await page.waitForURL("/");
+
+  await page.getByRole("button", { name: /^View rating for/ }).click();
+  await page.getByRole("button", { name: "Edit" }).click();
+
+  const scoreInput = page.getByRole("spinbutton");
+  await scoreInput.click();
+  await page.keyboard.press("Control+A");
+  await page.keyboard.press("Backspace");
+  await page.keyboard.type("9,2");
+  await scoreInput.blur();
+  await expect(scoreInput).toHaveValue("9.2");
+
+  await page.getByRole("button", { name: "Save" }).click();
+
+  await expect(
+    page.getByRole("button", { name: /^View rating for/ }).getByText("9.2")
+  ).toBeVisible();
+});
