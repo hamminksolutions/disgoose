@@ -20,8 +20,8 @@ export function ScoreAndReview({
         <span className="rounded-full bg-accent px-[10px] py-[3px] text-[14px] font-semibold text-canvas">
           {(score / 10).toFixed(1)}
         </span>
+        <OwnedBadge owned={owned} />
         <ListenMethodBadge listenMethod={listenMethod} />
-        {owned && <OwnedBadge />}
       </div>
 
       {reviewText && (

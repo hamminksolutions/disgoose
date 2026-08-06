@@ -1,7 +1,16 @@
-/** Green pill badge marking a rating as owned — detail modal and the all-ratings list, alongside `ListenMethodBadge`. */
-export function OwnedBadge() {
+/**
+ * Green pill badge marking a rating as owned — detail modal and the all-ratings list, alongside `ListenMethodBadge`.
+ * Always renders (invisibly when not owned) so it reserves its width, keeping `ListenMethodBadge` at a fixed
+ * position immediately to its right regardless of whether this row/record is owned.
+ */
+export function OwnedBadge({ owned }: { owned: boolean }) {
   return (
-    <span className="inline-flex shrink-0 items-center gap-[6px] rounded-full border-[1.5px] border-accent-secondary bg-accent-secondary/16 px-[12px] py-[6px] text-[12.5px] font-bold text-accent-secondary">
+    <span
+      aria-hidden={!owned}
+      className={`inline-flex shrink-0 items-center gap-[6px] rounded-full border-[1.5px] border-accent-secondary bg-accent-secondary/16 px-[12px] py-[6px] text-[12.5px] font-bold text-accent-secondary ${
+        owned ? "" : "invisible"
+      }`}
+    >
       Owned
     </span>
   );

@@ -69,10 +69,14 @@ export function ListenMethodIcon({
   }
 }
 
-/** Icon + label pill — all-ratings list rows and the rating detail read view. */
+/**
+ * Icon + label pill — all-ratings list rows and the rating detail read view.
+ * Fixed width (fits the longest label, "Other streaming") so this badge sits at the same
+ * position regardless of which listen method a row has, rather than shifting with label length.
+ */
 export function ListenMethodBadge({ listenMethod }: { listenMethod: ListenMethod }) {
   return (
-    <span className="flex shrink-0 items-center gap-[6px] rounded-full border border-border px-[10px] py-[6px] text-[13px] font-semibold text-text-secondary">
+    <span className="flex w-[144px] shrink-0 items-center justify-center gap-[6px] rounded-full border border-border px-[10px] py-[6px] text-[13px] font-semibold text-text-secondary">
       <ListenMethodIcon listenMethod={listenMethod} size={12} />
       {listenMethodLabel(listenMethod)}
     </span>
